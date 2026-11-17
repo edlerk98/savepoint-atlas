@@ -45,6 +45,7 @@
       <a href="friends.html">Friends</a>
       <a href="account.html">Account</a>
       <a href="checkout.html">Go Pro</a>
+      <a href="signin.html" data-auth="signed-out">Sign in</a>
     </nav>
   </div>
 </header>
@@ -112,10 +113,11 @@
   <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
 </footer>
 
+<script src="assets/vendor/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
-(() => {
-  const { load, save, el } = SA;
+(async () => {
+  const { el, data } = SA;
   const CATS = ['Main Story', 'Side Quests', 'Collectibles', 'Exploration', 'Challenges'];
   const SEED = [
     { id: 1, title: 'Example: finish the first story chapter', cat: 'Main Story', spoiler: 0, done: true, note: 'Example entry. Source: placeholder.' },
@@ -126,21 +128,21 @@
     { id: 6, title: 'Example: beat a timed challenge', cat: 'Challenges', spoiler: 1, done: false, note: 'Example of a mild-spoiler note.' },
   ];
 
-  const settings = load('settings', {});
-  const state = {
-    items: load('items', SEED),
-    filter: 'All',
-    hideDone: false,
-    hideSpoilers: settings.hideSpoilers !== false, // Account setting, on by default
-    revealed: new Set(),
-  };
-
   const $ = (id) => document.getElementById(id);
   $('new-cat').append(...CATS.map((c) => el('option', { value: c, text: c })));
 
-  function persist() {
-    const ok = save('items', state.items);
-    $('saved').textContent = ok ? 'Saved on this device' : 'Not saved: storage is blocked';
+  const state = { items: [], mode: 'local', filter: 'All', hideDone: false, hideSpoilers: true, revealed: new Set() };
+
+  function setStatus(text, warn) {
+    $('saved').textContent = text;
+    $('saved').style.color = warn ? 'var(--warn)' : '';
+  }
+  const savedText = () => (state.mode === 'cloud' ? 'Synced to your account' : 'Saved on this device');
+
+  // Every change updates the screen first, then saves. A failed save says so instead of failing quietly.
+  async function commit(work) {
+    try { await work(); setStatus(savedText()); }
+    catch (err) { setStatus('Not saved: ' + ((err && err.message) || 'connection problem') + '. Reload to retry.', true); }
   }
 
   function renderProgress() {
@@ -167,7 +169,7 @@
     $('chips').replaceChildren(...['All', ...CATS].map((name) =>
       el('button', {
         class: 'chip', type: 'button', 'aria-pressed': String(state.filter === name), text: name,
-        onclick: () => { state.filter = name; render(); },
+        onclick: () => { state.filter = name; $('new-cat').value = name === 'All' ? $('new-cat').value : name; render(); },
       })));
     $('hide-done').setAttribute('aria-pressed', String(state.hideDone));
     $('hide-spoilers').setAttribute('aria-pressed', String(state.hideSpoilers));
@@ -184,7 +186,10 @@
       return el('li', { class: 'item' + (i.done ? ' done' : '') },
         el('input', {
           class: 'check', type: 'checkbox', id: checkId, checked: i.done,
-          onchange: (e) => { i.done = e.target.checked; persist(); render(); },
+          onchange: (e) => {
+            i.done = e.target.checked; render();
+            commit(() => data.updateItem(i.id, { done: i.done }, state.items));
+          },
         }),
         el('div', { class: 'body' },
           el('label', { class: 'title', for: checkId, text: i.title }),
@@ -200,7 +205,10 @@
             : (i.note ? el('p', { class: 'note', text: i.note }) : null)),
         el('button', {
           class: 'del', type: 'button', text: 'Delete', 'aria-label': `Delete ${i.title}`,
-          onclick: () => { state.items = state.items.filter((x) => x.id !== i.id); persist(); render(); },
+          onclick: () => {
+            state.items = state.items.filter((x) => x.id !== i.id); render();
+            commit(() => data.deleteItem(i.id, state.items));
+          },
         }));
     }));
   }
@@ -213,12 +221,31 @@
     e.preventDefault();
     const title = $('new-title').value.trim();
     if (!title) return;
-    state.items.unshift({ id: Date.now(), title, cat: $('new-cat').value, spoiler: 0, done: false, note: '' });
+    const temp = { id: 'new-' + Date.now(), title, cat: $('new-cat').value, spoiler: 0, done: false, note: '' };
+    state.items.unshift(temp);
     $('new-title').value = '';
-    persist(); render();
+    render();
     $('new-title').focus();
+    commit(async () => {
+      const saved = await data.addItem(temp, state.items);
+      Object.assign(temp, saved); // the account gives the item its permanent id
+      render();
+    });
   });
-  if (state.filter !== 'All') $('new-cat').value = state.filter;
+
+  // Load: account if signed in, otherwise this browser.
+  setStatus('Loading…');
+  render();
+  try {
+    const [{ mode, items }, profile] = await Promise.all([data.loadItems(SEED), data.loadProfile()]);
+    state.mode = mode;
+    state.items = items;
+    state.hideSpoilers = profile.settings.hideSpoilers !== false; // Account setting, on by default
+    setStatus(savedText());
+  } catch (err) {
+    state.items = SA.load('items', SEED);
+    setStatus("Couldn't reach your account, showing this browser's copy. Changes here aren't synced.", true);
+  }
   render();
 })();
 </script>

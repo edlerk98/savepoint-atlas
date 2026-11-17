@@ -45,6 +45,19 @@
   </section>
   <div class="wrap narrow stack" style="padding-top:28px">
 
+    <section class="card" aria-labelledby="signin-h">
+      <h2 class="plate" id="signin-h">Plate 00 · Sign-in</h2>
+      <div id="auth-out" hidden>
+        <p style="margin-bottom:12px">You're not signed in. Your progress is saved only in this browser.</p>
+        <a class="btn btn-primary" href="signin.html">Sign in with email</a>
+      </div>
+      <div id="auth-in" hidden>
+        <p style="margin-bottom:12px">Signed in as <strong id="auth-email"></strong>. Your checklist and settings sync to this account.</p>
+        <button class="btn btn-secondary" type="button" id="signout">Sign out</button>
+      </div>
+      <p class="muted" id="auth-off" hidden>Accounts aren't switched on yet. Everything is saved in this browser.</p>
+    </section>
+
     <section class="card featured sub has-stripes" aria-labelledby="sub-h">
       <div class="stripes" aria-hidden="true"></div>
       <div class="info">
@@ -64,8 +77,8 @@
     <section class="card" aria-labelledby="profile-h">
       <h2 class="plate" id="profile-h">Plate 02 · Profile</h2>
       <div class="row">
-        <div class="field"><label for="handle">Handle</label><input class="input" id="handle" type="text" autocomplete="username" placeholder="sample_player"></div>
-        <div class="field"><label for="mail">Email (sample)</label><input class="input" id="mail" type="email" readonly value="player@example.com"></div>
+        <div class="field"><label for="handle">Handle</label><input class="input" id="handle" type="text" autocomplete="username" placeholder="sample_player" maxlength="24" aria-describedby="handle-status"><span class="label xs" id="handle-status" role="status">3 to 24 lowercase letters, numbers or underscores</span></div>
+        <div class="field"><label for="mail">Email</label><input class="input" id="mail" type="text" readonly value="Not signed in"></div>
       </div>
     </section>
 
@@ -82,8 +95,8 @@
       </div>
       <div class="confirm" id="confirm" hidden>
         <div style="font-weight:600">Delete your account?</div>
-        <p class="muted" style="font-size:15px">This removes your checklists, friends and groups. Your subscription is cancelled first. It cannot be undone. Export your data before you continue.</p>
-        <p class="muted" style="font-size:14px">In this prototype, it clears the data saved on this device.</p>
+        <p class="muted" style="font-size:15px" id="delete-text">This clears the checklist and settings saved in this browser. It cannot be undone. Export your data before you continue.</p>
+        <p class="status" id="delete-status" role="status"></p>
         <div class="btns">
           <button class="btn btn-light" type="button" id="keep">Keep my account</button>
           <button class="btn btn-primary" type="button" id="do-delete">Delete permanently</button>
@@ -97,16 +110,31 @@
   <div class="wrap narrow"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
 </footer>
 
+<script src="assets/vendor/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
-(() => {
-  const { CONFIG, isPlaceholder, load, save, exportAll, clearAll, el } = SA;
+(async () => {
+  const { CONFIG, isPlaceholder, el, data } = SA;
   const $ = (id) => document.getElementById(id);
   // Sample subscription: renewal shown as one year from today.
   const renew = new Date(); renew.setFullYear(renew.getFullYear() + 1);
   $('renew-date').textContent = renew.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Sign-in state
+  const user = await SA.currentUser();
+  if (!SA.accountsEnabled) $('auth-off').hidden = false;
+  else if (user) {
+    $('auth-in').hidden = false;
+    $('auth-email').textContent = user.email;
+    $('mail').value = user.email;
+    $('delete-text').textContent = 'This permanently deletes your account, your checklist and your settings. It cannot be undone. Export your data before you continue.';
+  } else $('auth-out').hidden = false;
+  $('signout').addEventListener('click', async () => { await SA.signOut(); window.location.reload(); });
+
+  let profile = { handle: '', settings: {} };
+  try { profile = await data.loadProfile(); } catch { /* fall back to defaults */ }
   const defaults = { publicProfile: false, hideSpoilers: true, emailTips: false };
-  const settings = { ...defaults, ...load('settings', {}) };
+  const settings = { ...defaults, ...profile.settings };
 
   const SWITCHES = [
     ['publicProfile', 'Public profile', 'Off by default. When on, anyone with your link sees completion percentages only.'],
@@ -118,10 +146,11 @@
     const btn = el('button', {
       class: 'switch-row', type: 'button', role: 'switch', 'aria-checked': String(settings[key]),
       'aria-labelledby': tId, 'aria-describedby': dId,
-      onclick: () => {
+      onclick: async () => {
         settings[key] = !settings[key];
         btn.setAttribute('aria-checked', String(settings[key]));
-        save('settings', settings);
+        try { await data.saveSettings(settings); }
+        catch { $('portal-status').textContent = "Couldn't save that setting to your account. Try again."; }
       },
     },
       el('span', { style: { minWidth: 0 } }, el('span', { class: 't', id: tId, text: title }), el('span', { class: 'd', id: dId, text: desc })),
@@ -130,8 +159,15 @@
   }));
 
   const handle = $('handle');
-  handle.value = load('handle', '');
-  handle.addEventListener('change', () => save('handle', handle.value.trim()));
+  const handleStatus = $('handle-status');
+  handle.value = profile.handle || '';
+  handle.addEventListener('change', async () => {
+    const v = handle.value.trim().toLowerCase();
+    handle.value = v;
+    if (v && !/^[a-z0-9_]{3,24}$/.test(v)) { handleStatus.textContent = 'Use 3 to 24 lowercase letters, numbers or underscores.'; return; }
+    try { await data.saveHandle(v); handleStatus.textContent = v ? 'Saved' : 'Handle removed'; }
+    catch (err) { handleStatus.textContent = (err && err.message) || "Couldn't save the handle."; }
+  });
 
   document.querySelectorAll('[data-portal]').forEach((b) => b.addEventListener('click', () => {
     if (isPlaceholder(CONFIG.customerPortalLink)) {
@@ -141,8 +177,10 @@
     window.location.assign(CONFIG.customerPortalLink);
   }));
 
-  $('export').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), data: exportAll() }, null, 2)], { type: 'application/json' });
+  $('export').addEventListener('click', async () => {
+    let payload;
+    try { payload = await data.exportAll(); } catch { payload = { error: "Couldn't reach your account; local data only." }; }
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), data: payload }, null, 2)], { type: 'application/json' });
     const a = el('a', { href: URL.createObjectURL(blob), download: 'savepoint-atlas-export.json' });
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -155,9 +193,16 @@
   };
   $('ask-delete').addEventListener('click', () => setConfirm(true));
   $('keep').addEventListener('click', () => setConfirm(false));
-  $('do-delete').addEventListener('click', () => {
-    clearAll();
-    window.location.assign('index.html');
+  $('do-delete').addEventListener('click', async () => {
+    $('do-delete').disabled = true;
+    $('delete-status').textContent = 'Deleting…';
+    try {
+      await data.deleteAccount();
+      window.location.assign('index.html');
+    } catch (err) {
+      $('delete-status').textContent = "Couldn't delete the account: " + ((err && err.message) || 'connection problem') + '. Nothing was removed.';
+      $('do-delete').disabled = false;
+    }
   });
 })();
 </script>
