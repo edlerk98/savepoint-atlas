@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Account · Sogilex</title>
+<title>Account · Savepoint Atlas</title>
 <link rel="stylesheet" href="assets/styles.css">
 <style>
   .sub { flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
@@ -17,7 +17,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <div class="wrap narrow">
-    <a class="brand" href="index.html">Sogilex</a>
+    <a class="brand" href="index.html">Savepoint Atlas</a>
     <nav class="nav" aria-label="Main">
       <a href="checklist.html">Checklist</a>
       <a href="friends.html">Friends</a>
@@ -61,7 +61,7 @@
       <div class="info">
         <div class="plate">Plate 01 · Your plan</div>
         <span class="tag ok">Free</span>
-        <h2 class="card-title" id="sub-h">Sogilex Free</h2>
+        <h2 class="card-title" id="sub-h">Savepoint Atlas Free</h2>
         <p class="muted" style="font-size:15px">Everything you need to track the pack, synced and spoiler-safe. Pack Plus for Grand Theft Auto VI ($9.99 once, no subscription) is coming soon.</p>
       </div>
       <div class="btns">
@@ -103,7 +103,7 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap narrow"><p>Sogilex is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players. <a href="privacy.html">Privacy policy</a>.</p></div>
+  <div class="wrap narrow"><p>Savepoint Atlas is an independent tool made by Sogilex. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players. <a href="privacy.html">Privacy policy</a>.</p></div>
 </footer>
 
 <script src="assets/vendor/supabase.js"></script>
@@ -166,7 +166,7 @@
     let payload;
     try { payload = await data.exportAll(); } catch { payload = { error: "Couldn't reach your account; local data only." }; }
     const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), data: payload }, null, 2)], { type: 'application/json' });
-    const a = el('a', { href: URL.createObjectURL(blob), download: 'sogilex-export.json' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'savepoint-atlas-export.json' });
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
