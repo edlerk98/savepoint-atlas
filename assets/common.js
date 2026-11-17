@@ -8,7 +8,7 @@ window.SA = (() => {
   // Never put the secret (sb_secret_) or service_role key here.
   const CONFIG = {
     supabaseUrl: 'https://sdltqbctuieyjlujsdhj.supabase.co',
-    supabaseAnonKey: '[SUPABASE-PUBLISHABLE-KEY]',
+    supabaseAnonKey: 'sb_publishable_SLyXLfw7hZQTL_xEpofo8g_XgKZZStM',
     paymentLinkMonthly: '[STRIPE-PAYMENT-LINK-MONTHLY]',
     paymentLinkYearly: '[STRIPE-PAYMENT-LINK-YEARLY]',
     customerPortalLink: '[STRIPE-CUSTOMER-PORTAL-LINK]',
