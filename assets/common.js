@@ -4,11 +4,11 @@ window.SA = (() => {
   const PREFIX = 'savepoint-atlas:';
 
   // Fill these in before launch. Bracketed values mean "not configured".
-  // The Supabase anon key is meant to be public: row-level security in supabase/schema.sql protects the data.
-  // Never put the service_role key here.
+  // The Supabase publishable (anon) key is meant to be public: row-level security in supabase/schema.sql protects the data.
+  // Never put the secret (sb_secret_) or service_role key here.
   const CONFIG = {
-    supabaseUrl: '[SUPABASE-PROJECT-URL]',
-    supabaseAnonKey: '[SUPABASE-ANON-KEY]',
+    supabaseUrl: 'https://sdltqbctuieyjlujsdhj.supabase.co',
+    supabaseAnonKey: '[SUPABASE-PUBLISHABLE-KEY]',
     paymentLinkMonthly: '[STRIPE-PAYMENT-LINK-MONTHLY]',
     paymentLinkYearly: '[STRIPE-PAYMENT-LINK-YEARLY]',
     customerPortalLink: '[STRIPE-CUSTOMER-PORTAL-LINK]',

@@ -18,4 +18,4 @@ Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, 
 4. Copy the Project URL and the anon public key into `assets/common.js`. Never use the `service_role` key in this site.
 5. Before real users: set up custom SMTP under Authentication > Emails. Supabase's built-in sender is rate-limited and meant for testing.
 
-The Supabase client is vendored at `assets/vendor/supabase.js` (supabase-js 2.45.4, MIT).
+The Supabase client is vendored at `assets/vendor/supabase.js` (supabase-js 2.118.0, MIT).
