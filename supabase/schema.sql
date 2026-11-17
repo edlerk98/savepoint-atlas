@@ -1,4 +1,4 @@
--- Savepoint Atlas: database setup for accounts (step 1: sign-in, synced checklist, synced settings).
+-- Sogilex: database setup for accounts (step 1: sign-in, synced checklist, synced settings).
 -- Run this once in your Supabase project: Dashboard > SQL Editor > New query > paste > Run.
 -- Safe to re-run: every statement checks whether its object already exists.
 -- Written for a project created with "Automatically expose new tables" switched OFF:

@@ -1,7 +1,19 @@
 // Shared helpers for every page.
 // Storage: signed in -> your Supabase account; signed out (or accounts not set up) -> this browser's localStorage.
 window.SA = (() => {
-  const PREFIX = 'savepoint-atlas:';
+  const PREFIX = 'sogilex:';
+  // One-time carry-over from the old name, so progress saved before the rename isn't lost.
+  try {
+    const OLD = 'savepoint-atlas:';
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(OLD)) {
+        const nk = PREFIX + k.slice(OLD.length);
+        if (localStorage.getItem(nk) === null) localStorage.setItem(nk, localStorage.getItem(k));
+        localStorage.removeItem(k);
+      }
+    }
+  } catch { /* storage unavailable */ }
 
   // Fill these in before launch. Bracketed values mean "not configured".
   // The Supabase publishable (anon) key is meant to be public: row-level security in supabase/schema.sql protects the data.
@@ -66,6 +78,12 @@ window.SA = (() => {
     return client;
   }
 
+  // Settles a promise within ms, or rejects with a plain message (auth calls have no abort option).
+  const within = (promise, ms) => Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("Couldn't reach the account service. Check your connection and try again.")), ms)),
+  ]);
+
   // Resolves once, after any magic-link token in the URL has been read.
   let userPromise = null;
   function currentUser() {
@@ -74,7 +92,7 @@ window.SA = (() => {
         const c = db();
         if (!c) return null;
         try {
-          const { data } = await c.auth.getSession();
+          const { data } = await within(c.auth.getSession(), 10000);
           return data.session ? data.session.user : null;
         } catch { return null; }
       })();
@@ -88,16 +106,16 @@ window.SA = (() => {
   async function sendMagicLink(email) {
     const c = db();
     if (!c) throw new Error('Accounts are not set up yet.');
-    const { error } = await c.auth.signInWithOtp({
+    const { error } = await within(c.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: pageUrl('checklist.html'), shouldCreateUser: true },
-    });
+    }), 15000);
     if (error) throw error;
   }
 
   async function signOut() {
     const c = db();
-    if (c) await c.auth.signOut();
+    if (c) { try { await within(c.auth.signOut(), 8000); } catch { /* the local session is cleared regardless */ } }
     userPromise = Promise.resolve(null);
   }
 
@@ -111,6 +129,9 @@ window.SA = (() => {
   };
   const fromRow = (r) => ({ id: r.id, title: r.title, cat: r.cat, spoiler: r.spoiler, done: r.done, note: r.note, entry_id: r.entry_id || null });
   const fromEntry = (e) => ({ title: e.title, cat: e.cat, spoiler: e.spoiler, done: false, note: e.note, entry_id: e.id });
+  // Every request gets a time limit: the client retries failed reads on its own, so without one an
+  // unreachable Supabase (outage, blocked network) would leave pages loading forever.
+  const limit = () => AbortSignal.timeout(8000);
   const fail = (error) => { throw new Error((error && error.message) || 'connection problem'); };
 
   // Approved pack entries are public. Resolves to [] if accounts are off or the 002 tables aren't installed yet.
@@ -123,7 +144,7 @@ window.SA = (() => {
         try {
           const { data: rows, error } = await c.from('pack_entries')
             .select('id, title, cat, spoiler, note, source, created_at')
-            .eq('pack', PACK).eq('status', 'approved').order('created_at', { ascending: true });
+            .eq('pack', PACK).eq('status', 'approved').order('created_at', { ascending: true }).abortSignal(limit());
           return error ? [] : rows;
         } catch { return []; }
       })();
@@ -156,7 +177,7 @@ window.SA = (() => {
         return { mode: 'local', items, entries };
       }
       const c = db();
-      const { data: rows, error } = await c.from('checklist_items').select('*').eq('pack', PACK).order('created_at', { ascending: false }).order('id');
+      const { data: rows, error } = await c.from('checklist_items').select('*').eq('pack', PACK).order('created_at', { ascending: false }).order('id').abortSignal(limit());
       if (error) fail(error);
       let items = rows.map(fromRow);
       const toInsert = [];
@@ -164,7 +185,7 @@ window.SA = (() => {
       const have = new Set(items.map((i) => i.entry_id).concat(toInsert.map((r) => r.entry_id)).filter(Boolean));
       entries.filter((e) => !have.has(e.id)).forEach((e) => toInsert.push(toRow(fromEntry(e))));
       if (toInsert.length) {
-        const { data: inserted, error: insErr } = await c.from('checklist_items').insert(toInsert).select('*');
+        const { data: inserted, error: insErr } = await c.from('checklist_items').insert(toInsert).select('*').abortSignal(limit());
         if (insErr) fail(insErr);
         items = items.concat(inserted.map(fromRow));
       }
@@ -173,20 +194,20 @@ window.SA = (() => {
     async addItem(item, items) {
       const user = await currentUser();
       if (!user) { save('items', items); return item; }
-      const { data: row, error } = await db().from('checklist_items').insert(toRow(item)).select('*').single();
+      const { data: row, error } = await db().from('checklist_items').insert(toRow(item)).select('*').single().abortSignal(limit());
       if (error) fail(error);
       return fromRow(row);
     },
     async updateItem(id, patch, items) {
       const user = await currentUser();
       if (!user) { save('items', items); return; }
-      const { error } = await db().from('checklist_items').update(patch).eq('id', id);
+      const { error } = await db().from('checklist_items').update(patch).eq('id', id).abortSignal(limit());
       if (error) fail(error);
     },
     async deleteItem(id, items) {
       const user = await currentUser();
       if (!user) { save('items', items); return; }
-      const { error } = await db().from('checklist_items').delete().eq('id', id);
+      const { error } = await db().from('checklist_items').delete().eq('id', id).abortSignal(limit());
       if (error) fail(error);
     },
 
@@ -195,7 +216,7 @@ window.SA = (() => {
       const local = { handle: load('handle', ''), settings: load('settings', {}) };
       const user = await currentUser();
       if (!user) return local;
-      const { data: row, error } = await db().from('profiles').select('handle, settings').eq('id', user.id).maybeSingle();
+      const { data: row, error } = await db().from('profiles').select('handle, settings').eq('id', user.id).maybeSingle().abortSignal(limit());
       if (error) fail(error);
       if (!row) return local;
       return { handle: row.handle || '', settings: { ...local.settings, ...(row.settings || {}) } };
@@ -204,14 +225,14 @@ window.SA = (() => {
       save('settings', settings);
       const user = await currentUser();
       if (!user) return;
-      const { error } = await db().from('profiles').update({ settings }).eq('id', user.id);
+      const { error } = await db().from('profiles').update({ settings }).eq('id', user.id).abortSignal(limit());
       if (error) fail(error);
     },
     async saveHandle(handle) {
       save('handle', handle);
       const user = await currentUser();
       if (!user) return;
-      const { error } = await db().from('profiles').update({ handle: handle || null }).eq('id', user.id);
+      const { error } = await db().from('profiles').update({ handle: handle || null }).eq('id', user.id).abortSignal(limit());
       if (error) {
         if (error.code === '23505') throw new Error('That handle is taken.');
         if (error.code === '23514') throw new Error('Use 3 to 24 lowercase letters, numbers or underscores.');
@@ -225,7 +246,7 @@ window.SA = (() => {
       if (!user) throw new Error('Sign in to submit entries.');
       const { error } = await db().from('pack_entries').insert({
         pack: PACK, title: e.title, cat: e.cat, spoiler: e.spoiler, note: e.note, source: e.source, submitted_by: user.id,
-      });
+      }).abortSignal(limit());
       if (error) fail(error);
     },
     async mySubmissions() {
@@ -233,57 +254,57 @@ window.SA = (() => {
       if (!user) return [];
       const { data: rows, error } = await db().from('pack_entries')
         .select('id, title, cat, spoiler, status, review_note, created_at')
-        .eq('submitted_by', user.id).order('created_at', { ascending: false });
+        .eq('submitted_by', user.id).order('created_at', { ascending: false }).abortSignal(limit());
       if (error) fail(error);
       return rows;
     },
     async withdrawEntry(id) {
-      const { error } = await db().from('pack_entries').delete().eq('id', id);
+      const { error } = await db().from('pack_entries').delete().eq('id', id).abortSignal(limit());
       if (error) fail(error);
     },
     async isAdmin() {
       const user = await currentUser();
       if (!user) return false;
-      const { data: yes, error } = await db().rpc('is_admin');
+      const { data: yes, error } = await db().rpc('is_admin').abortSignal(limit());
       return !error && !!yes;
     },
     async reviewQueue(status = 'pending') {
       const { data: rows, error } = await db().from('pack_entries')
-        .select('*').eq('pack', PACK).eq('status', status).order('created_at', { ascending: true });
+        .select('*').eq('pack', PACK).eq('status', status).order('created_at', { ascending: true }).abortSignal(limit());
       if (error) fail(error);
       return rows;
     },
     async reviewEntry(id, patch) {
       const { error } = await db().from('pack_entries')
-        .update({ ...patch, reviewed_at: new Date().toISOString() }).eq('id', id);
+        .update({ ...patch, reviewed_at: new Date().toISOString() }).eq('id', id).abortSignal(limit());
       if (error) fail(error);
     },
     async deleteEntry(id) {
-      const { error } = await db().from('pack_entries').delete().eq('id', id);
+      const { error } = await db().from('pack_entries').delete().eq('id', id).abortSignal(limit());
       if (error) fail(error);
     },
 
     // ----- friends -----
     async myFriends() {
-      const { data: rows, error } = await db().rpc('my_friends');
+      const { data: rows, error } = await db().rpc('my_friends').abortSignal(limit());
       if (error) fail(error);
       return rows;
     },
     async sendFriendRequest(handle) {
-      const { data: result, error } = await db().rpc('send_friend_request', { target_handle: handle });
+      const { data: result, error } = await db().rpc('send_friend_request', { target_handle: handle }).abortSignal(limit());
       if (error) fail(error);
       return result;
     },
     async respondFriendRequest(id, accept) {
-      const { error } = await db().rpc('respond_friend_request', { request_id: id, accept });
+      const { error } = await db().rpc('respond_friend_request', { request_id: id, accept }).abortSignal(limit());
       if (error) fail(error);
     },
     async removeFriend(id) {
-      const { error } = await db().from('friendships').delete().eq('id', id);
+      const { error } = await db().from('friendships').delete().eq('id', id).abortSignal(limit());
       if (error) fail(error);
     },
     async friendProgress() {
-      const { data: rows, error } = await db().rpc('friend_progress', { p_pack: PACK });
+      const { data: rows, error } = await db().rpc('friend_progress', { p_pack: PACK }).abortSignal(limit());
       if (error) fail(error);
       return rows;
     },
@@ -295,9 +316,9 @@ window.SA = (() => {
       if (user) {
         const c = db();
         const [{ data: profile }, { data: items }, { data: submissions }] = await Promise.all([
-          c.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-          c.from('checklist_items').select('*').order('created_at', { ascending: true }),
-          c.from('pack_entries').select('*').eq('submitted_by', user.id),
+          c.from('profiles').select('*').eq('id', user.id).maybeSingle().abortSignal(limit()),
+          c.from('checklist_items').select('*').order('created_at', { ascending: true }).abortSignal(limit()),
+          c.from('pack_entries').select('*').eq('submitted_by', user.id).abortSignal(limit()),
         ]);
         out.account = { email: user.email, profile, items, submissions: submissions || [] };
       }
@@ -306,7 +327,7 @@ window.SA = (() => {
     async deleteAccount() {
       const user = await currentUser();
       if (user) {
-        const { error } = await db().rpc('delete_my_account');
+        const { error } = await db().rpc('delete_my_account').abortSignal(limit());
         if (error) fail(error);
         await signOut();
       }

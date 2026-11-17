@@ -1,4 +1,4 @@
--- Savepoint Atlas 002: player contributions with review, and friends.
+-- Sogilex 002: player contributions with review, and friends.
 -- Run once in Supabase: SQL Editor > New query > paste > Run (after schema.sql). Safe to re-run.
 
 -- ============ Admins (who may review submissions) ============

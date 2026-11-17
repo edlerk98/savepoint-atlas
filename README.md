@@ -1,6 +1,6 @@
-# Savepoint Atlas
+# Sogilex
 
-Static prototype of the Savepoint Atlas completion tracker: Landing, Checklist, Friends, Pro checkout, Account.
+Sogilex, the completion tracker for open-world games: landing, checklist, friends, contributions with review, Pack Plus checkout, account. Static site on GitHub Pages with Supabase for accounts.
 
 - Plain HTML, CSS and JS. No build step. Open `index.html`, or serve the folder (`python3 -m http.server`).
 - Signed out, progress and settings are saved in the browser's localStorage. Signed in (magic-link email via Supabase), they sync to the account. On first sign-in, the browser's list moves into the account.
@@ -8,7 +8,7 @@ Static prototype of the Savepoint Atlas completion tracker: Landing, Checklist, 
 - Accounts are off until `supabaseUrl` and `supabaseAnonKey` are set in `assets/common.js`. The site works without them.
 - Bracketed values such as `[PRICE]`, `[DATE]`, `[HANDLE]`, `[FRIEND LIMIT]`, `[TERMS-URL]` and `[PRIVACY-URL]` are placeholders to replace before launch.
 
-Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.
+Sogilex is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.
 
 ## Turning on accounts (Supabase)
 

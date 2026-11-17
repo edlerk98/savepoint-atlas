@@ -1,4 +1,4 @@
-/* Savepoint Atlas: tokens from DESIGN.md, plus `ctl` (control borders, 3:1+ on ink and panel)
+/* Sogilex: tokens from DESIGN.md, plus `ctl` (control borders, 3:1+ on ink and panel)
    and `hot-text` (accent for small text on panel, where #ff5d73 is only 4.4:1). */
 /* Fonts are self-hosted (Latin subsets, SIL Open Font License: see assets/fonts/LICENSE-*.txt). No requests go to Google. */
 @font-face { font-family: 'Big Shoulders Display'; font-style: normal; font-weight: 800; font-display: swap; src: url('fonts/big-shoulders-display-latin-800-normal.woff2') format('woff2'); }
