@@ -4,9 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upgrade to Pro · Savepoint Atlas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 <style>
   .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
@@ -48,9 +45,10 @@
     <div class="wrap narrow gridrefs" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
     <div class="wrap narrow sheet-inner">
       <div class="stack" style="gap:10px">
-        <div class="plate">Sheet 04 · Pro</div>
-        <h1 id="co-h">Upgrade to Pro</h1>
-        <p class="lede-sm">Unlimited friends, co-op groups with live checklists, and shareable progress links.</p>
+        <div class="plate">Sheet 04 · Pack Plus · for Grand Theft Auto VI</div>
+        <h1 id="co-h">Pack Plus</h1>
+        <p class="lede-sm">One payment for the tools that get you to 100%. No subscription, nothing renews.</p>
+        <span class="tag warn">Coming soon · everything in the free tier works today</span>
       </div>
     </div>
   </section>
@@ -58,21 +56,23 @@
 
     <div class="cols">
       <div class="left">
-        <div class="card"><fieldset>
-          <legend class="plate">Plate 01 · Billing</legend>
-          <label class="plan">
-            <input type="radio" name="plan" value="monthly">
-            <span style="display:flex;gap:12px;align-items:center"><span class="dot" aria-hidden="true"></span>
-              <span><span style="font-weight:600;display:block">Monthly</span><span class="muted" style="font-size:14px">Cancel any time</span></span></span>
-            <span class="p">[PRICE] / mo</span>
-          </label>
-          <label class="plan">
-            <input type="radio" name="plan" value="yearly" checked>
-            <span style="display:flex;gap:12px;align-items:center"><span class="dot" aria-hidden="true"></span>
-              <span><span style="font-weight:600;display:block">Yearly</span><span class="muted" style="font-size:14px">[SAVINGS] compared with monthly</span></span></span>
-            <span class="p">[YEARLY PRICE] / yr</span>
-          </label>
-        </fieldset></div>
+        <section class="card" aria-labelledby="get-h">
+          <h2 class="plate" id="get-h">Plate 01 · What Plus adds</h2>
+          <ul class="keylist">
+            <li><span class="sym pro" aria-hidden="true"></span>Several playthroughs of the same pack, tracked separately</li>
+            <li><span class="sym pro" aria-hidden="true"></span>Private notes on any entry</li>
+            <li><span class="sym pro" aria-hidden="true"></span>Advanced completion filters</li>
+            <li><span class="sym pro" aria-hidden="true"></span>Printable completion sheets</li>
+          </ul>
+          <p class="muted" style="font-size:14px">These are in development. Plus goes on sale when they work, not before.</p>
+          <h3 class="plate" style="margin-top:8px">Free, and staying free</h3>
+          <ul class="keylist">
+            <li><span class="sym free" aria-hidden="true"></span>The verified checklist and your own items</li>
+            <li><span class="sym free" aria-hidden="true"></span>Sync across devices</li>
+            <li><span class="sym free" aria-hidden="true"></span>Spoiler controls</li>
+            <li><span class="sym free" aria-hidden="true"></span>Friends and the race</li>
+          </ul>
+        </section>
 
         <div class="card">
           <div class="plate">Plate 02 · Your details</div>
@@ -87,14 +87,13 @@
       <aside class="card featured right has-stripes" aria-labelledby="sum-h">
         <div class="stripes" aria-hidden="true"></div>
         <h2 class="plate" id="sum-h">Plate 03 · Order summary</h2>
-        <div class="sum-line"><span>Savepoint Atlas Pro</span><span style="font-weight:600" id="plan-label">Yearly</span></div>
-        <ul class="keylist"><li><span class="sym pro" aria-hidden="true"></span>Unlimited friends</li><li><span class="sym pro" aria-hidden="true"></span>Co-op groups with live checklists</li><li><span class="sym pro" aria-hidden="true"></span>Shareable progress links</li><li><span class="sym pro" aria-hidden="true"></span>Backup history</li></ul>
-        <div class="due"><span>Due today</span><strong id="due">[YEARLY PRICE]</strong></div>
-        <p class="muted" style="font-size:14px" id="renew">Renews every year from the day you subscribe, until you cancel.</p>
+        <div class="sum-line"><span>Pack Plus · Grand Theft Auto VI</span><span style="font-weight:600">One-time</span></div>
+        <div class="due"><span>Due today</span><strong>$9.99</strong></div>
+        <p class="muted" style="font-size:14px">One payment. No subscription, and nothing renews. Plus stays on your account for this pack.</p>
         <label class="terms"><input class="check sm" type="checkbox" id="terms" required> <span>I agree to the <a href="[TERMS-URL]">Terms</a> and the <a href="privacy.html">Privacy Policy</a>.</span></label>
         <button class="btn btn-primary" type="submit" id="pay" aria-describedby="pay-status">Continue to secure payment</button>
         <p class="status" id="pay-status" role="status"></p>
-        <p class="muted" style="font-size:13px;text-align:center">Cancel any time from your account. Refund requests are handled under the Terms.</p>
+        <p class="muted" style="font-size:13px;text-align:center">Refund requests are handled under the Terms.</p>
       </aside>
     </div>
   </form>
@@ -107,23 +106,12 @@
 <script src="assets/vendor/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
-(() => {
+(async () => {
   const { CONFIG, isPlaceholder } = SA;
   const form = document.getElementById('checkout');
   const status = document.getElementById('pay-status');
-  const plan = () => form.elements.plan.value;
-
-  function sync() {
-    const yearly = plan() === 'yearly';
-    document.getElementById('plan-label').textContent = yearly ? 'Yearly' : 'Monthly';
-    document.getElementById('due').textContent = yearly ? '[YEARLY PRICE]' : '[PRICE]';
-    // Stripe renews on the purchase anniversary, so a purchase today renews one period from today.
-    const next = new Date();
-    if (yearly) next.setFullYear(next.getFullYear() + 1); else next.setMonth(next.getMonth() + 1);
-    const when = next.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
-    document.getElementById('renew').textContent = `Renews every ${yearly ? 'year' : 'month'}, next on ${when}, until you cancel.`;
-  }
-  form.addEventListener('change', sync);
+  const user = SA.accountsEnabled ? await SA.currentUser() : null;
+  if (user && !document.getElementById('email').value) document.getElementById('email').value = user.email || '';
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -139,17 +127,21 @@
       email.focus();
       return;
     }
-    const link = plan() === 'yearly' ? CONFIG.paymentLinkYearly : CONFIG.paymentLinkMonthly;
-    if (isPlaceholder(link)) {
-      status.textContent = 'Payment is not set up yet: add the Stripe Payment Link in assets/common.js.';
+    if (isPlaceholder(CONFIG.paymentLinkPackPlus)) {
+      status.textContent = "Pack Plus isn't on sale yet. It goes on sale once its features are ready.";
       return;
     }
-    // Card details are entered only on Stripe's hosted page. We pass the email so the receipt goes to the right place.
-    const url = new URL(link);
+    if (!user) {
+      status.textContent = 'Sign in first, so Plus is added to your account.';
+      return;
+    }
+    // Card details are entered only on Stripe's hosted page. The account id travels with the payment
+    // (client_reference_id) so the purchase can be matched to this account.
+    const url = new URL(CONFIG.paymentLinkPackPlus);
     if (email.value) url.searchParams.set('prefilled_email', email.value);
+    url.searchParams.set('client_reference_id', user.id);
     window.location.assign(url.toString());
   });
-  sync();
 })();
 </script>
 </body>

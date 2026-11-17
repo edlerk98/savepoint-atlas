@@ -4,7 +4,7 @@ Static prototype of the Savepoint Atlas completion tracker: Landing, Checklist, 
 
 - Plain HTML, CSS and JS. No build step. Open `index.html`, or serve the folder (`python3 -m http.server`).
 - Signed out, progress and settings are saved in the browser's localStorage. Signed in (magic-link email via Supabase), they sync to the account. On first sign-in, the browser's list moves into the account.
-- Checkout goes to Stripe Payment Links and billing goes to the Stripe customer portal. Card details never touch this app. Set the links in `assets/common.js`; while they are `[BRACKETED]` placeholders, the buttons say payment isn't set up.
+- Pricing: Free, plus Pack Plus for Grand Theft Auto VI at $9.99 one-time (coming soon). Checkout sends signed-in users to a Stripe Payment Link with their account id as `client_reference_id`. Card details never touch this app. Set `paymentLinkPackPlus` in `assets/common.js`; while it is a `[BRACKETED]` placeholder, checkout says Plus isn't on sale yet.
 - Accounts are off until `supabaseUrl` and `supabaseAnonKey` are set in `assets/common.js`. The site works without them.
 - Bracketed values such as `[PRICE]`, `[DATE]`, `[HANDLE]`, `[FRIEND LIMIT]`, `[TERMS-URL]` and `[PRIVACY-URL]` are placeholders to replace before launch.
 
@@ -28,5 +28,9 @@ Run it in the SQL Editor after `schema.sql`. It adds:
 - `friendships` plus functions to send, accept and list requests, and `friend_progress()`, which returns completion counts on verified entries only (never item titles or notes).
 
 Pages: `contribute.html` (submit, see your submissions), `review.html` (reviewers only; the database enforces it), `privacy.html` (draft: fill in the bracketed details and have it reviewed).
+
+Sign-in email: paste `supabase/email-sign-in.html` into Authentication > Emails > Templates (both "Magic link" and "Confirm signup").
+
+Fonts are self-hosted in `assets/fonts` (Latin subsets from Fontsource 5.3.0, SIL Open Font License).
 
 The Supabase client is vendored at `assets/vendor/supabase.js` (supabase-js 2.118.0, MIT).

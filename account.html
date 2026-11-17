@@ -4,9 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Account · Savepoint Atlas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 <style>
   .sub { flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
@@ -62,17 +59,15 @@
     <section class="card featured sub has-stripes" aria-labelledby="sub-h">
       <div class="stripes" aria-hidden="true"></div>
       <div class="info">
-        <div class="plate">Plate 01 · Subscription</div>
-        <span class="tag ok">Active (sample)</span>
-        <h2 class="card-title" id="sub-h">Savepoint Atlas Pro</h2>
-        <p class="muted" style="font-size:15px">Sample yearly plan. Renews on <span id="renew-date">a date one year after purchase</span> for [YEARLY PRICE].</p>
+        <div class="plate">Plate 01 · Your plan</div>
+        <span class="tag ok">Free</span>
+        <h2 class="card-title" id="sub-h">Savepoint Atlas Free</h2>
+        <p class="muted" style="font-size:15px">Everything you need to track the pack, synced and spoiler-safe. Pack Plus for Grand Theft Auto VI ($9.99 once, no subscription) is coming soon.</p>
       </div>
       <div class="btns">
-        <button class="btn btn-primary" type="button" data-portal>Manage billing</button>
-        <button class="btn btn-secondary" type="button" data-portal>Cancel plan</button>
+        <a class="btn btn-secondary" href="checkout.html">About Pack Plus</a>
       </div>
     </section>
-    <p class="muted" style="font-size:14px;margin-top:-10px">Billing is handled on Stripe's secure portal. Invoices and card changes live there.</p>
     <p class="status" id="portal-status" role="status"></p>
 
     <section class="card" aria-labelledby="profile-h">
@@ -115,11 +110,8 @@
 <script src="assets/common.js"></script>
 <script>
 (async () => {
-  const { CONFIG, isPlaceholder, el, data } = SA;
+  const { el, data } = SA;
   const $ = (id) => document.getElementById(id);
-  // Sample subscription: renewal shown as one year from today.
-  const renew = new Date(); renew.setFullYear(renew.getFullYear() + 1);
-  $('renew-date').textContent = renew.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Sign-in state
   const user = await SA.currentUser();
@@ -140,7 +132,7 @@
   const SWITCHES = [
     ['publicProfile', 'Public profile', 'Off by default. When on, anyone with your link sees completion percentages only.'],
     ['hideSpoilers', 'Hide spoilers by default', 'Blur story notes until you reveal them.'],
-    ['emailTips', 'Product emails', 'Occasional updates about new features. Receipts are always sent.'],
+    ['emailTips', 'Product emails', 'Occasional updates about new features. Purchase receipts are always sent.'],
   ];
   $('switches').replaceChildren(...SWITCHES.map(([key, title, desc]) => {
     const tId = 'sw-' + key, dId = tId + '-d';
@@ -169,14 +161,6 @@
     try { await data.saveHandle(v); handleStatus.textContent = v ? 'Saved' : 'Handle removed'; }
     catch (err) { handleStatus.textContent = (err && err.message) || "Couldn't save the handle."; }
   });
-
-  document.querySelectorAll('[data-portal]').forEach((b) => b.addEventListener('click', () => {
-    if (isPlaceholder(CONFIG.customerPortalLink)) {
-      $('portal-status').textContent = 'Billing portal is not set up yet: add the Stripe customer portal link in assets/common.js.';
-      return;
-    }
-    window.location.assign(CONFIG.customerPortalLink);
-  }));
 
   $('export').addEventListener('click', async () => {
     let payload;

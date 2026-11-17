@@ -9,9 +9,7 @@ window.SA = (() => {
   const CONFIG = {
     supabaseUrl: 'https://sdltqbctuieyjlujsdhj.supabase.co',
     supabaseAnonKey: 'sb_publishable_SLyXLfw7hZQTL_xEpofo8g_XgKZZStM',
-    paymentLinkMonthly: '[STRIPE-PAYMENT-LINK-MONTHLY]',
-    paymentLinkYearly: '[STRIPE-PAYMENT-LINK-YEARLY]',
-    customerPortalLink: '[STRIPE-CUSTOMER-PORTAL-LINK]',
+    paymentLinkPackPlus: '[STRIPE-PAYMENT-LINK-PACK-PLUS]', // one-time $9.99 Payment Link for Pack Plus (GTA VI)
   };
 
   const isPlaceholder = (v) => typeof v !== 'string' || /^\[.*\]$/.test(v.trim());
