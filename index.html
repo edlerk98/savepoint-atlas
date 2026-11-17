@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Savepoint Atlas: completion tracker</title>
+<meta name="description" content="Build a checklist for any game, keep it synced, and compare progress with friends without spoilers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .hero { border-bottom: 1px solid var(--line); }
+  .hero .wrap { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; padding-top: 64px; padding-bottom: 64px; }
+  .hero-copy { flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+  .hero-art { flex: 1 1 320px; min-width: 0; display: flex; justify-content: center; }
+  .hero-art svg { width: 360px; height: auto; }
+  .sun { animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+  .section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 20px; }
+  .feature { border-top: 3px solid; padding-top: 14px; }
+  .price { font-family: var(--display); font-weight: 900; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .price small { font-size: 22px; color: var(--mute); font-weight: 800; }
+  .list { margin: 0; padding: 0; list-style: none; color: var(--mute); font-size: 15px; line-height: 1.8; }
+  @media (max-width: 700px) { .hero .wrap { padding-top: 40px; padding-bottom: 40px; } }
+</style>
+</head>
+<body class="landing">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html">Savepoint Atlas</a>
+    <nav class="nav" aria-label="Main">
+      <a href="#packs">Game packs</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a class="solid" href="checklist.html">Open tracker</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" style="padding:0">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <div class="label">Completion tracker · shared progress</div>
+        <h1>Never lose your place in an <span class="accent">open world.</span></h1>
+        <p class="lede">Build a checklist for any game, sync it across every device, and compare progress with friends without spoiling a thing.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+          <a class="btn btn-primary" href="checklist.html">Start tracking free</a>
+          <a class="btn btn-secondary" href="friends.html">See friend compare</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <svg viewBox="0 0 300 300" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb35c"/><stop offset=".55" stop-color="#ff5d73"/><stop offset="1" stop-color="#c2308f"/></linearGradient>
+            <mask id="st"><rect width="300" height="300" fill="#fff"/><rect y="170" width="300" height="5" fill="#000"/><rect y="193" width="300" height="8" fill="#000"/><rect y="219" width="300" height="11" fill="#000"/><rect y="248" width="300" height="15" fill="#000"/></mask>
+          </defs>
+          <g class="sun"><circle cx="150" cy="150" r="120" fill="url(#sf)" mask="url(#st)"/></g>
+          <g fill="#0b252c">
+            <path d="M0 292 Q70 262 150 276 T300 268 V300 H0Z"/>
+            <path d="M212 300 C214 250 208 200 216 160 L222 160 C216 200 224 250 224 300Z"/>
+            <path d="M219 160 C190 140 170 146 150 162 C176 148 196 148 219 164Z M219 160 C240 134 264 134 282 150 C260 142 242 146 219 164Z M219 160 C214 130 226 112 244 104 C230 118 226 134 223 162Z M219 160 C206 134 188 122 168 122 C190 126 206 140 217 164Z"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="packs" class="wrap" style="padding-top:56px;padding-bottom:24px" aria-labelledby="packs-h">
+    <div class="section-head">
+      <h2 id="packs-h">Game packs</h2>
+      <span class="label">Built by the community. Every item shows its source.</span>
+    </div>
+    <div class="row">
+      <article class="card">
+        <span class="tag warn">Launch pack · unofficial</span>
+        <h3 class="card-title">Grand Theft Auto VI</h3>
+        <p class="muted" style="font-size:15px">Community checklist, filled in as players verify entries. [ITEM COUNT] items so far.</p>
+        <a class="text-link" style="margin-top:auto" href="checklist.html">Open this pack</a>
+      </article>
+      <article class="card">
+        <span class="tag">Community pack</span>
+        <h3 class="card-title">[GAME NAME]</h3>
+        <p class="muted" style="font-size:15px">Any player can start a pack for any game and keep it private or share it.</p>
+        <a class="text-link" style="margin-top:auto" href="checklist.html">Browse packs</a>
+      </article>
+      <article class="card dashed">
+        <h3 class="card-title">Start your own</h3>
+        <p class="muted" style="font-size:15px">Name a game, add categories, paste in your items. Ready in a minute.</p>
+        <a class="text-link on-ink" href="checklist.html">Create a pack</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="features" class="wrap" style="padding-top:40px;padding-bottom:40px" aria-label="Features">
+    <div class="row">
+      <div class="feature" style="border-color:var(--hot)">
+        <h3 class="card-title md">Synced everywhere</h3>
+        <p class="muted prose" style="margin-top:6px">Tick an item on your phone, see it on your laptop. Progress follows your account, not your browser.</p>
+      </div>
+      <div class="feature" style="border-color:var(--ok)">
+        <h3 class="card-title md">Spoiler-safe</h3>
+        <p class="muted prose" style="margin-top:6px">Story notes stay blurred until you reveal them. One setting hides every spoiler at once.</p>
+      </div>
+      <div class="feature" style="border-color:var(--warn)">
+        <h3 class="card-title md">Run it with friends</h3>
+        <p class="muted prose" style="margin-top:6px">Compare completion side by side, or share one live checklist for a co-op run.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="wrap" style="padding-top:40px;padding-bottom:64px" aria-labelledby="pricing-h">
+    <h2 id="pricing-h" style="margin-bottom:20px">Pricing</h2>
+    <div class="row">
+      <article class="card" style="padding:24px">
+        <div class="label">Free</div>
+        <div class="price">$0</div>
+        <ul class="list"><li>Unlimited personal checklists</li><li>Cloud sync</li><li>Spoiler blur</li><li>Up to [FRIEND LIMIT] friends</li></ul>
+        <a class="btn btn-secondary" style="margin-top:auto" href="checklist.html">Start free</a>
+      </article>
+      <article class="card featured" style="padding:24px">
+        <div class="label accent-text">Pro</div>
+        <div class="price">[PRICE]<small> / month</small></div>
+        <ul class="list"><li>Unlimited friends</li><li>Co-op groups with live checklists</li><li>Shareable progress links</li><li>Backup history</li></ul>
+        <a class="btn btn-primary" style="margin-top:auto" href="checkout.html">Go Pro</a>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
+</footer>
+</body>
+</html>

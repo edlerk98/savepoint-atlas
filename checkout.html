@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upgrade to Pro · Savepoint Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .cols > .left { flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  .cols > .right { flex: 1 1 300px; min-width: 0; }
+  fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  legend { padding: 0; margin-bottom: 12px; float: left; width: 100%; }
+  legend + * { clear: both; }
+  .plan { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 16px; min-height: 64px; border-radius: 10px; background: var(--ink); border: 2px solid var(--ctl); cursor: pointer; }
+  .plan:has(input:checked) { border-color: var(--hot); }
+  .plan:has(input:focus-visible) { outline: 3px solid var(--hot); outline-offset: 2px; }
+  .plan input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .plan .p { font-family: var(--display); font-weight: 900; font-size: 28px; font-variant-numeric: tabular-nums; }
+  .plan .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--ctl); flex: none; }
+  .plan:has(input:checked) .dot { border: 6px solid var(--hot); }
+  .note-box { color: var(--mute); font-size: 14px; border: 1px dashed var(--line); border-radius: 8px; padding: 12px; }
+  .sum-line { display: flex; justify-content: space-between; gap: 12px; }
+  .due { border-top: 1px solid var(--line); padding-top: 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .due strong { font-family: var(--display); font-weight: 900; font-size: 34px; font-variant-numeric: tabular-nums; }
+  .terms { display: flex; gap: 12px; align-items: center; min-height: 44px; font-size: 14px; cursor: pointer; }
+  .status { font-size: 14px; color: var(--warn); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="wrap narrow">
+    <a class="brand" href="index.html">Savepoint Atlas</a>
+    <nav class="nav" aria-label="Main"><a href="checklist.html">Back to tracker</a></nav>
+  </div>
+</header>
+
+<main id="main">
+  <form class="wrap narrow stack" style="gap:22px" id="checkout" novalidate>
+    <div class="stack" style="gap:8px">
+      <span class="label accent">Pro</span>
+      <h1>Upgrade to Pro</h1>
+    </div>
+
+    <div class="cols">
+      <div class="left">
+        <div class="card"><fieldset>
+          <legend class="label">1. Choose billing</legend>
+          <label class="plan">
+            <input type="radio" name="plan" value="monthly">
+            <span style="display:flex;gap:12px;align-items:center"><span class="dot" aria-hidden="true"></span>
+              <span><span style="font-weight:600;display:block">Monthly</span><span class="muted" style="font-size:14px">Cancel any time</span></span></span>
+            <span class="p">[PRICE] / mo</span>
+          </label>
+          <label class="plan">
+            <input type="radio" name="plan" value="yearly" checked>
+            <span style="display:flex;gap:12px;align-items:center"><span class="dot" aria-hidden="true"></span>
+              <span><span style="font-weight:600;display:block">Yearly</span><span class="muted" style="font-size:14px">[SAVINGS] compared with monthly</span></span></span>
+            <span class="p">[YEARLY PRICE] / yr</span>
+          </label>
+        </fieldset></div>
+
+        <div class="card">
+          <div class="label">2. Your details</div>
+          <div class="field">
+            <label for="email">Receipt email</label>
+            <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+          </div>
+          <p class="note-box">You enter your card on Stripe's secure payment page in the next step. Savepoint Atlas never sees or stores your card number.</p>
+        </div>
+      </div>
+
+      <aside class="card featured right" aria-labelledby="sum-h">
+        <h2 class="label" id="sum-h" style="font-family:var(--mono);font-weight:400">Order summary</h2>
+        <div class="sum-line"><span>Savepoint Atlas Pro</span><span style="font-weight:600" id="plan-label">Yearly</span></div>
+        <ul class="muted" style="margin:0;padding:0;list-style:none;font-size:15px;line-height:1.8"><li>Unlimited friends</li><li>Co-op groups with live checklists</li><li>Shareable progress links</li><li>Backup history</li></ul>
+        <div class="due"><span>Due today</span><strong id="due">[YEARLY PRICE]</strong></div>
+        <p class="muted" style="font-size:14px" id="renew">Renews every year on [DATE] until you cancel.</p>
+        <label class="terms"><input class="check sm" type="checkbox" id="terms" required> <span>I agree to the <a href="[TERMS-URL]">Terms</a> and the <a href="[PRIVACY-URL]">Privacy Policy</a>.</span></label>
+        <button class="btn btn-primary" type="submit" id="pay" aria-describedby="pay-status">Continue to secure payment</button>
+        <p class="status" id="pay-status" role="status"></p>
+        <p class="muted" style="font-size:13px;text-align:center">Cancel any time from your account. Refund requests are handled under the Terms.</p>
+      </aside>
+    </div>
+  </form>
+</main>
+
+<footer class="footer">
+  <div class="wrap narrow"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
+</footer>
+
+<script src="assets/common.js"></script>
+<script>
+(() => {
+  const { CONFIG, isPlaceholder } = SA;
+  const form = document.getElementById('checkout');
+  const status = document.getElementById('pay-status');
+  const plan = () => form.elements.plan.value;
+
+  function sync() {
+    const yearly = plan() === 'yearly';
+    document.getElementById('plan-label').textContent = yearly ? 'Yearly' : 'Monthly';
+    document.getElementById('due').textContent = yearly ? '[YEARLY PRICE]' : '[PRICE]';
+    document.getElementById('renew').textContent = yearly
+      ? 'Renews every year on [DATE] until you cancel.'
+      : 'Renews every month on [DATE] until you cancel.';
+  }
+  form.addEventListener('change', sync);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    status.textContent = '';
+    if (!document.getElementById('terms').checked) {
+      status.textContent = 'Tick the box to agree to the Terms and Privacy Policy first.';
+      document.getElementById('terms').focus();
+      return;
+    }
+    const email = document.getElementById('email');
+    if (email.value && !email.checkValidity()) {
+      status.textContent = 'That email address does not look right.';
+      email.focus();
+      return;
+    }
+    const link = plan() === 'yearly' ? CONFIG.paymentLinkYearly : CONFIG.paymentLinkMonthly;
+    if (isPlaceholder(link)) {
+      status.textContent = 'Payment is not set up yet: add the Stripe Payment Link in assets/common.js.';
+      return;
+    }
+    // Card details are entered only on Stripe's hosted page. We pass the email so the receipt goes to the right place.
+    const url = new URL(link);
+    if (email.value) url.searchParams.set('prefilled_email', email.value);
+    window.location.assign(url.toString());
+  });
+  sync();
+})();
+</script>
+</body>
+</html>
