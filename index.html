@@ -200,7 +200,7 @@
             <div class="plate">Plate 03 · Game packs</div>
             <h2 id="packs-h">Built by players</h2>
           </div>
-          <span class="label">Every item shows its source</span>
+          <a class="text-link" href="contribute.html">Every item shows its source · Contribute</a>
         </div>
         <div class="packs">
           <article class="card pack-main">
@@ -208,7 +208,7 @@
             <div class="inner">
               <span class="tag warn">Launch pack · unofficial</span>
               <h3 class="card-title">Grand Theft Auto VI</h3>
-              <p class="muted" style="max-width:52ch">Community checklist, filled in as players verify entries. Sample count: 240 items so far, each tagged with where it came from.</p>
+              <p class="muted" style="max-width:52ch">Community checklist, filled in as players verify entries. <span id="pack-count">Verified entries are being added</span>, each tagged with where it came from.</p>
               <div class="tags"><span class="tag">Main story</span><span class="tag">Side quests</span><span class="tag">Collectibles</span><span class="tag">Exploration</span></div>
               <a class="btn btn-primary lg" style="margin-top:auto;width:fit-content" href="checklist.html">Open this pack</a>
             </div>
@@ -296,13 +296,16 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
+  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players. <a href="privacy.html">Privacy policy</a>.</p></div>
 </footer>
 
 <script src="assets/vendor/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
 (() => {
+  // Live count of verified entries in the GTA VI pack
+  SA.data.coverage().then((c) => { if (c.total) document.getElementById('pack-count').textContent = `${c.total} verified ${c.total === 1 ? 'entry' : 'entries'} so far`; });
+
   // Mini tracker demo
   const rows = [...document.querySelectorAll('#mini-rows .mini-row')];
   const update = () => {

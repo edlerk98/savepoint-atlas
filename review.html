@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Review queue · Savepoint Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  textarea.input { min-height: 72px; resize: vertical; line-height: 1.5; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .entry { gap: 12px; }
+  .entry .grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  .entry .grid > * { flex: 1 1 220px; min-width: 0; }
+  .src { background: var(--ink); border: 1px dashed var(--ctl); border-radius: 8px; padding: 10px 12px; overflow-wrap: anywhere; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .msg { font-size: 14px; color: var(--warn); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="wrap narrow">
+    <a class="brand" href="index.html">Savepoint Atlas</a>
+    <nav class="nav" aria-label="Main">
+      <a href="checklist.html">Checklist</a>
+      <a href="contribute.html">Contribute</a>
+      <a href="review.html" aria-current="page">Review</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" style="padding-top:0">
+  <section class="sheet" aria-labelledby="r-h">
+    <div class="wrap narrow gridrefs" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+    <div class="wrap narrow sheet-inner">
+      <div class="stack" style="gap:10px">
+        <div class="plate">Sheet 08 · Review queue</div>
+        <h1 id="r-h">Check before it ships</h1>
+        <p class="lede-sm">Approve only what the source supports. You can tidy the wording before approving. Rejected entries show your note to the submitter.</p>
+      </div>
+      <div class="tabs" role="group" aria-label="Show">
+        <button class="chip" type="button" data-status="pending" aria-pressed="true">Waiting</button>
+        <button class="chip" type="button" data-status="approved" aria-pressed="false">Approved</button>
+        <button class="chip" type="button" data-status="rejected" aria-pressed="false">Rejected</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap narrow stack" style="padding-top:28px">
+    <p class="muted" id="gate" hidden></p>
+    <div class="stack" id="list" style="gap:14px"></div>
+    <p class="muted" id="empty" hidden>Nothing here.</p>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap narrow"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. <a href="privacy.html">Privacy policy</a>.</p></div>
+</footer>
+
+<script src="assets/vendor/supabase.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(async () => {
+  const { el, data, CATS } = SA;
+  const $ = (id) => document.getElementById(id);
+  const gate = (text) => { $('gate').textContent = text; $('gate').hidden = false; };
+
+  if (!SA.accountsEnabled) return gate('Accounts are not switched on.');
+  if (!(await SA.currentUser())) return gate('Sign in with a reviewer account to use this page.');
+  if (!(await data.isAdmin())) return gate('This page is for reviewers. Your account is not on the reviewer list.');
+
+  let current = 'pending';
+  document.querySelectorAll('[data-status]').forEach((b) => b.addEventListener('click', () => {
+    current = b.dataset.status;
+    document.querySelectorAll('[data-status]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+
+  function card(e) {
+    const id = (k) => `${k}-${e.id}`;
+    const title = el('input', { class: 'input', id: id('t'), type: 'text', value: e.title, maxlength: '140' });
+    const cat = el('select', { class: 'input', id: id('c') }, CATS.map((c) => el('option', { value: c, text: c, selected: c === e.cat })));
+    const spoiler = el('select', { class: 'input', id: id('s') },
+      [['0', 'None'], ['1', 'Mild'], ['2', 'Major']].map(([v, t]) => el('option', { value: v, text: t, selected: String(e.spoiler) === v })));
+    const note = el('textarea', { class: 'input', id: id('n'), maxlength: '1000' }); note.value = e.note;
+    const reviewNote = el('input', { class: 'input', id: id('r'), type: 'text', maxlength: '500', value: e.review_note || '', placeholder: 'Optional. Shown to the submitter, useful when rejecting.' });
+    const msg = el('p', { class: 'msg', role: 'status' });
+    const act = async (patch, btn) => {
+      btn.disabled = true; msg.textContent = 'Saving…';
+      try {
+        await data.reviewEntry(e.id, {
+          title: title.value.trim(), cat: cat.value, spoiler: Number(spoiler.value), note: note.value.trim(),
+          review_note: reviewNote.value.trim(), ...patch,
+        });
+        render();
+      } catch (err) { msg.textContent = "Couldn't save: " + err.message; btn.disabled = false; }
+    };
+    const approve = el('button', { class: 'btn btn-primary', type: 'button', text: e.status === 'approved' ? 'Save changes' : 'Approve' });
+    approve.addEventListener('click', () => act({ status: 'approved' }, approve));
+    const reject = el('button', { class: 'btn btn-secondary', type: 'button', text: e.status === 'rejected' ? 'Save changes' : (e.status === 'approved' ? 'Unpublish' : 'Reject') });
+    reject.addEventListener('click', () => act({ status: 'rejected' }, reject));
+    const del = el('button', { class: 'btn btn-danger', type: 'button', text: 'Delete' });
+    del.addEventListener('click', async () => {
+      if (!window.confirm('Delete this entry for good? Players who have it keep their copy as a personal item.')) return;
+      del.disabled = true;
+      try { await data.deleteEntry(e.id); render(); } catch (err) { msg.textContent = "Couldn't delete: " + err.message; del.disabled = false; }
+    });
+    return el('article', { class: 'card entry' },
+      el('div', { class: 'label xs', text: `Submitted ${new Date(e.created_at).toLocaleString()}` }),
+      el('div', { class: 'field' }, el('label', { for: id('t'), text: 'Title' }), title),
+      el('div', { class: 'grid' },
+        el('div', { class: 'field' }, el('label', { for: id('c'), text: 'Category' }), cat),
+        el('div', { class: 'field' }, el('label', { for: id('s'), text: 'Spoiler level' }), spoiler)),
+      el('div', { class: 'field' }, el('label', { for: id('n'), text: 'Note' }), note),
+      el('div', { class: 'field' }, el('span', { class: 'label', text: 'Source (from the submitter)' }), el('div', { class: 'src', text: e.source })),
+      el('div', { class: 'field' }, el('label', { for: id('r'), text: 'Note to submitter' }), reviewNote),
+      el('div', { class: 'actions' }, approve, reject, del),
+      msg);
+  }
+
+  async function render() {
+    let rows = [];
+    try { rows = await data.reviewQueue(current); }
+    catch (err) { gate("Couldn't load the queue: " + err.message); return; }
+    $('empty').hidden = rows.length > 0;
+    $('list').replaceChildren(...rows.map(card));
+  }
+  render();
+})();
+</script>
+</body>
+</html>

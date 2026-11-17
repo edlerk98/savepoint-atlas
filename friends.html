@@ -13,6 +13,11 @@
   .race-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
   .share-url { font-family: var(--mono); font-size: 13px; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 12px; color: var(--mute); overflow-wrap: anywhere; }
   .bar-row .name { width: 72px; }
+  .add-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+  .add-form .field { flex: 1 1 200px; min-width: 0; }
+  .reqs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .req { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  .msg { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -24,6 +29,7 @@
       <a href="checklist.html">Checklist</a>
       <a href="friends.html" aria-current="page">Friends</a>
       <a href="account.html">Account</a>
+      <a href="contribute.html">Contribute</a>
       <a href="checkout.html">Go Pro</a>
       <a href="signin.html" data-auth="signed-out">Sign in</a>
     </nav>
@@ -39,23 +45,38 @@
     <div class="wrap sheet-inner">
       <div class="sheet-row">
         <div class="stack" style="gap:10px">
-          <div class="plate">Sheet 03 · Friends · sample data</div>
+          <div class="plate" id="sheet-label">Sheet 03 · Friends · sample data</div>
           <h1 id="race-h">Who is ahead?</h1>
           <span class="label">Grand Theft Auto VI pack</span>
         </div>
-        <div class="stack" style="gap:4px;align-items:flex-end">
-          <button class="btn btn-secondary" type="button" disabled aria-describedby="add-note">Add friend by handle</button>
-          <span class="label xs" id="add-note">Needs accounts: not in this prototype</span>
+        <div class="stack" style="gap:4px;align-items:flex-end" id="sample-cta">
+          <a class="btn btn-secondary" href="signin.html" id="sample-btn">Sign in to race your friends</a>
+          <span class="label xs" id="sample-note">The race below is sample data</span>
         </div>
       </div>
       <div class="race-card">
-        <div class="race-head"><h2 class="plate">Plate 01 · The race to 100%</h2><span class="label xs">Finish line at 100%</span></div>
-        <div class="race" id="race" role="list" aria-label="Overall completion, sample data"></div>
+        <div class="race-head"><h2 class="plate">Plate 01 · The race to 100%</h2><span class="label xs" id="race-note">Finish line at 100%</span></div>
+        <div class="race" id="race" role="list" aria-label="Overall completion"></div>
       </div>
     </div>
   </section>
 
   <div class="wrap stack" style="gap:22px;padding-top:32px">
+    <section class="card" id="manage" hidden aria-labelledby="manage-h">
+      <h2 class="plate" id="manage-h">Your friends</h2>
+      <p class="muted" id="need-handle" hidden>Set your handle on the <a href="account.html">Account page</a> first, so friends know who is asking.</p>
+      <form class="add-form" id="add-form" novalidate>
+        <div class="field">
+          <label for="friend-handle">Add a friend by handle</label>
+          <input class="input" id="friend-handle" type="text" autocomplete="off" maxlength="24" placeholder="their_handle">
+        </div>
+        <button class="btn btn-primary" type="submit">Send request</button>
+      </form>
+      <p class="msg" id="add-msg" role="status" aria-live="polite"></p>
+      <ul class="reqs" id="reqs"></ul>
+      <p class="muted" style="font-size:14px">Friends see your completion percentages for verified pack entries. They never see which items you ticked, your own items or your notes.</p>
+    </section>
+
     <h2 class="plate">Plate 02 · By category</h2>
     <div class="row" id="cats" style="margin-top:-8px"></div>
 
@@ -79,50 +100,129 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
+  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players. <a href="privacy.html">Privacy policy</a>.</p></div>
 </footer>
 
 <script src="assets/vendor/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
-(() => {
-  const { el } = SA;
-  // Sample numbers for layout only. Colours step in lightness (coral < green < sand) and every lane is labelled.
-  const PEOPLE = [
-    { name: 'You', initial: 'Y', sub: 'sample_player', color: 'var(--hot)', pct: 62 },
-    { name: 'Friend A', initial: 'A', sub: 'Sample friend', color: 'var(--ok)', pct: 48 },
-    { name: 'Friend B', initial: 'B', sub: 'Sample friend', color: 'var(--sand)', pct: 31 },
-  ];
-  const CATS = [
-    ['Main Story', 80, 60, 40], ['Side Quests', 55, 45, 30], ['Collectibles', 40, 35, 20],
-    ['Exploration', 70, 50, 38], ['Challenges', 65, 52, 28],
-  ];
+(async () => {
+  const { el, data, CATS } = SA;
+  const $ = (id) => document.getElementById(id);
+  // Lane colours step in lightness (coral < green < sand), then repeat; every lane is labelled with a name.
+  const COLORS = ['var(--hot)', 'var(--ok)', 'var(--sand)', 'var(--warn)', 'var(--mute)'];
 
-  const race = document.getElementById('race');
-  const lanes = PEOPLE.map((p) => {
-    const run = el('span', { class: 'run', style: { width: '0%', background: p.color } });
-    const marker = el('span', { class: 'marker', style: { left: '0%', background: p.color }, text: p.initial });
-    const lane = el('div', { class: 'lane', role: 'listitem', 'aria-label': `${p.name}: ${p.pct} percent` },
-      el('div', { class: 'who', 'aria-hidden': 'true' },
-        el('span', { style: { fontWeight: 600 }, text: p.name }), el('span', { class: 'label xs', text: p.sub })),
-      el('div', { class: 'course', 'aria-hidden': 'true' }, run, marker),
-      el('div', { class: 'big-pct', 'aria-hidden': 'true', text: p.pct + '%' }));
-    return { lane, run, marker, pct: p.pct };
+  function drawRace(people) {
+    const lanes = people.map((p, i) => {
+      const color = COLORS[i % COLORS.length];
+      const run = el('span', { class: 'run', style: { width: '0%', background: color } });
+      const marker = el('span', { class: 'marker', style: { left: '0%', background: color }, text: p.initial });
+      const lane = el('div', { class: 'lane', role: 'listitem', 'aria-label': `${p.name}: ${p.pct} percent` },
+        el('div', { class: 'who', 'aria-hidden': 'true' },
+          el('span', { style: { fontWeight: 600 }, text: p.name }), el('span', { class: 'label xs', text: p.sub })),
+        el('div', { class: 'course', 'aria-hidden': 'true' }, run, marker),
+        el('div', { class: 'big-pct', 'aria-hidden': 'true', text: p.pct + '%' }));
+      return { lane, run, marker, pct: p.pct };
+    });
+    $('race').replaceChildren(...lanes.map((l) => l.lane));
+    requestAnimationFrame(() => requestAnimationFrame(() => lanes.forEach((l) => {
+      l.run.style.width = l.pct + '%';
+      l.marker.style.left = l.pct + '%';
+    })));
+    $('cats').replaceChildren(...CATS.map((name) =>
+      el('article', { class: 'card', style: { padding: '16px', gap: '10px', flexBasis: '300px' } },
+        el('h3', { class: 'card-title sm', text: name }),
+        ...people.map((p, i) => {
+          const v = p.cats[name] || 0;
+          return el('div', { class: 'bar-row' },
+            el('span', { class: 'name', text: p.name }),
+            el('span', { class: 'bar', role: 'img', 'aria-label': `${p.name}: ${v} percent` }, el('i', { style: { width: v + '%', background: COLORS[i % COLORS.length] } })),
+            el('span', { class: 'val', 'aria-hidden': 'true', text: v + '%' }));
+        }))));
+  }
+
+  function drawSample() {
+    const SAMPLE = [
+      ['You', 'Y', 'sample_player', 62, [80, 55, 40, 70, 65]],
+      ['Friend A', 'A', 'Sample friend', 48, [60, 45, 35, 50, 52]],
+      ['Friend B', 'B', 'Sample friend', 31, [40, 30, 20, 38, 28]],
+    ];
+    drawRace(SAMPLE.map(([name, initial, sub, pct, c]) => ({ name, initial, sub, pct, cats: Object.fromEntries(CATS.map((k, i) => [k, c[i]])) })));
+  }
+
+  const user = SA.accountsEnabled ? await SA.currentUser() : null;
+  if (!user) { drawSample(); return; }
+
+  // ----- signed in: real friends -----
+  $('sheet-label').textContent = 'Sheet 03 · Friends';
+  $('sample-cta').hidden = true;
+  $('manage').hidden = false;
+
+  const pct = (d, t) => (t ? Math.round((d / t) * 100) : 0);
+  async function drawReal() {
+    let rows;
+    try { rows = await data.friendProgress(); }
+    catch (err) { $('race-note').textContent = "Couldn't load progress: " + err.message; $('race').replaceChildren(); return; }
+    const byPerson = new Map();
+    rows.forEach((r) => {
+      const key = (r.is_me ? '\u0000' : '') + (r.handle || 'you');
+      if (!byPerson.has(key)) byPerson.set(key, { name: r.is_me ? 'You' : r.handle, sub: r.is_me ? (r.handle || 'no handle yet') : 'Friend', initial: (r.is_me ? 'Y' : (r.handle || '?')[0]).toUpperCase(), done: 0, total: 0, cats: {} });
+      const p = byPerson.get(key);
+      p.done += r.done; p.total += r.total; p.cats[r.cat] = pct(r.done, r.total);
+    });
+    const people = [...byPerson.values()].map((p) => ({ ...p, pct: pct(p.done, p.total) }))
+      .sort((a, b) => (a.name === 'You' ? -1 : b.name === 'You' ? 1 : b.pct - a.pct));
+    if (!people.length) {
+      $('race-note').textContent = 'Counts verified pack entries only';
+      $('race').replaceChildren(el('p', { class: 'muted', text: 'No verified entries in your list yet, so there is nothing to race on. Entries appear as the pack fills up.' }));
+      $('cats').replaceChildren();
+      return;
+    }
+    $('race-note').textContent = 'Verified pack entries only · finish line at 100%';
+    drawRace(people);
+  }
+
+  async function drawRequests() {
+    let rows = [];
+    try { rows = await data.myFriends(); }
+    catch (err) { $('add-msg').textContent = "Couldn't load your friends: " + err.message; return; }
+    $('reqs').replaceChildren(...rows.map((f) => {
+      const btn = (text, cls, fn) => {
+        const b = el('button', { class: 'pill', type: 'button', text, style: cls ? { color: cls } : undefined, 'aria-label': `${text} ${f.handle}` });
+        b.addEventListener('click', async () => { b.disabled = true; try { await fn(); } catch (err) { $('add-msg').textContent = err.message; } refresh(); });
+        return b;
+      };
+      const label = f.status === 'accepted' ? 'Friend' : f.direction === 'incoming' ? 'Wants to be friends' : 'Request sent';
+      return el('li', { class: 'req' },
+        el('div', { style: { display: 'flex', flexDirection: 'column' } },
+          el('span', { style: { fontWeight: 600 }, text: f.handle }), el('span', { class: 'label xs', text: label })),
+        el('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
+          f.status === 'pending' && f.direction === 'incoming' ? btn('Accept', 'var(--ok)', () => data.respondFriendRequest(f.friendship_id, true)) : null,
+          f.status === 'pending' && f.direction === 'incoming' ? btn('Decline', null, () => data.respondFriendRequest(f.friendship_id, false)) : null,
+          f.status === 'pending' && f.direction === 'outgoing' ? btn('Cancel', null, () => data.removeFriend(f.friendship_id)) : null,
+          f.status === 'accepted' ? btn('Remove', null, () => data.removeFriend(f.friendship_id)) : null));
+    }));
+  }
+
+  async function refresh() { await Promise.all([drawRequests(), drawReal()]); }
+
+  const profile = await data.loadProfile().catch(() => ({ handle: '' }));
+  if (!profile.handle) { $('need-handle').hidden = false; $('add-form').hidden = true; }
+
+  $('add-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const h = $('friend-handle').value.trim().toLowerCase();
+    if (!/^[a-z0-9_]{3,24}$/.test(h)) { $('add-msg').textContent = 'Handles are 3 to 24 lowercase letters, numbers or underscores.'; return; }
+    $('add-msg').textContent = 'Sending…';
+    try {
+      const r = await data.sendFriendRequest(h);
+      $('add-msg').textContent = r === 'accepted' ? `You and ${h} are now friends.` : r === 'exists' ? `You already have a request or friendship with ${h}.` : `Request sent to ${h}.`;
+      $('friend-handle').value = '';
+      refresh();
+    } catch (err) { $('add-msg').textContent = err.message; }
   });
-  race.replaceChildren(...lanes.map((l) => l.lane));
-  // Markers travel to their spot once; with reduced motion the CSS transition is off, so they just appear.
-  requestAnimationFrame(() => requestAnimationFrame(() => lanes.forEach((l) => {
-    l.run.style.width = l.pct + '%';
-    l.marker.style.left = l.pct + '%';
-  })));
 
-  document.getElementById('cats').replaceChildren(...CATS.map(([name, ...vals]) =>
-    el('article', { class: 'card', style: { padding: '16px', gap: '10px', flexBasis: '300px' } },
-      el('h3', { class: 'card-title sm', text: name }),
-      ...PEOPLE.map((p, i) => el('div', { class: 'bar-row' },
-        el('span', { class: 'name', text: p.name }),
-        el('span', { class: 'bar', role: 'img', 'aria-label': `${p.name}: ${vals[i]} percent` }, el('i', { style: { width: vals[i] + '%', background: p.color } })),
-        el('span', { class: 'val', 'aria-hidden': 'true', text: vals[i] + '%' }))))));
+  refresh();
 })();
 </script>
 </body>

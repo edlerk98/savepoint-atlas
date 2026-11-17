@@ -105,49 +105,100 @@ window.SA = (() => {
 
   // ---------- Data layer: same calls whether signed in or not ----------
   const PACK = 'gta6';
-  const toRow = (i) => ({ pack: PACK, title: i.title, cat: i.cat, spoiler: i.spoiler || 0, done: !!i.done, note: i.note || '' });
-  const fromRow = (r) => ({ id: r.id, title: r.title, cat: r.cat, spoiler: r.spoiler, done: r.done, note: r.note });
+  const CATS = ['Main Story', 'Side Quests', 'Collectibles', 'Exploration', 'Challenges'];
+  const toRow = (i) => {
+    const r = { pack: PACK, title: i.title, cat: i.cat, spoiler: i.spoiler || 0, done: !!i.done, note: i.note || '' };
+    if (i.entry_id) r.entry_id = i.entry_id; // only sent when set, so this works before 002 is installed
+    return r;
+  };
+  const fromRow = (r) => ({ id: r.id, title: r.title, cat: r.cat, spoiler: r.spoiler, done: r.done, note: r.note, entry_id: r.entry_id || null });
+  const fromEntry = (e) => ({ title: e.title, cat: e.cat, spoiler: e.spoiler, done: false, note: e.note, entry_id: e.id });
+  const fail = (error) => { throw new Error((error && error.message) || 'connection problem'); };
+
+  // Approved pack entries are public. Resolves to [] if accounts are off or the 002 tables aren't installed yet.
+  let entriesPromise = null;
+  function packEntries() {
+    if (!entriesPromise) {
+      entriesPromise = (async () => {
+        const c = db();
+        if (!c) return [];
+        try {
+          const { data: rows, error } = await c.from('pack_entries')
+            .select('id, title, cat, spoiler, note, source, created_at')
+            .eq('pack', PACK).eq('status', 'approved').order('created_at', { ascending: true });
+          return error ? [] : rows;
+        } catch { return []; }
+      })();
+    }
+    return entriesPromise;
+  }
 
   const data = {
-    // Returns { mode: 'cloud' | 'local', items }.
+    packEntries,
+    async coverage() {
+      const entries = await packEntries();
+      const byCat = Object.fromEntries(CATS.map((c) => [c, 0]));
+      entries.forEach((e) => { byCat[e.cat] = (byCat[e.cat] || 0) + 1; });
+      return { total: entries.length, byCat };
+    },
+
+    // Returns { mode: 'cloud' | 'local', items, entries }. Approved entries missing from the list are added to it.
     async loadItems(seed) {
+      const entries = await packEntries();
+      const start = entries.length ? [] : seed; // examples only while the pack is empty
       const user = await currentUser();
-      if (!user) return { mode: 'local', items: load('items', seed) };
+      if (!user) {
+        let items = load('items', start);
+        const have = new Set(items.map((i) => i.entry_id).filter(Boolean));
+        const missing = entries.filter((e) => !have.has(e.id));
+        if (missing.length) {
+          items = items.concat(missing.map((e) => ({ ...fromEntry(e), id: 'e-' + e.id })));
+          save('items', items);
+        }
+        return { mode: 'local', items, entries };
+      }
       const c = db();
       const { data: rows, error } = await c.from('checklist_items').select('*').eq('pack', PACK).order('created_at', { ascending: false }).order('id');
-      if (error) throw error;
-      if (rows.length) return { mode: 'cloud', items: rows.map(fromRow) };
-      // First sign-in: bring this browser's list into the account (or the labelled examples if there is none).
-      const start = load('items', seed);
-      const { data: inserted, error: insErr } = await c.from('checklist_items').insert(start.map(toRow)).select('*');
-      if (insErr) throw insErr;
-      return { mode: 'cloud', items: inserted.map(fromRow) };
+      if (error) fail(error);
+      let items = rows.map(fromRow);
+      const toInsert = [];
+      if (!rows.length) toInsert.push(...load('items', start).map(toRow)); // first sign-in: bring this browser's list
+      const have = new Set(items.map((i) => i.entry_id).concat(toInsert.map((r) => r.entry_id)).filter(Boolean));
+      entries.filter((e) => !have.has(e.id)).forEach((e) => toInsert.push(toRow(fromEntry(e))));
+      if (toInsert.length) {
+        const { data: inserted, error: insErr } = await c.from('checklist_items').insert(toInsert).select('*');
+        if (insErr) fail(insErr);
+        items = items.concat(inserted.map(fromRow));
+      }
+      return { mode: 'cloud', items, entries };
     },
     async addItem(item, items) {
       const user = await currentUser();
       if (!user) { save('items', items); return item; }
       const { data: row, error } = await db().from('checklist_items').insert(toRow(item)).select('*').single();
-      if (error) throw error;
+      if (error) fail(error);
       return fromRow(row);
     },
     async updateItem(id, patch, items) {
       const user = await currentUser();
       if (!user) { save('items', items); return; }
       const { error } = await db().from('checklist_items').update(patch).eq('id', id);
-      if (error) throw error;
+      if (error) fail(error);
     },
     async deleteItem(id, items) {
       const user = await currentUser();
       if (!user) { save('items', items); return; }
       const { error } = await db().from('checklist_items').delete().eq('id', id);
-      if (error) throw error;
+      if (error) fail(error);
     },
+
+    // ----- profile -----
     async loadProfile() {
       const local = { handle: load('handle', ''), settings: load('settings', {}) };
       const user = await currentUser();
       if (!user) return local;
       const { data: row, error } = await db().from('profiles').select('handle, settings').eq('id', user.id).maybeSingle();
-      if (error) throw error;
+      if (error) fail(error);
       if (!row) return local;
       return { handle: row.handle || '', settings: { ...local.settings, ...(row.settings || {}) } };
     },
@@ -156,7 +207,7 @@ window.SA = (() => {
       const user = await currentUser();
       if (!user) return;
       const { error } = await db().from('profiles').update({ settings }).eq('id', user.id);
-      if (error) throw error;
+      if (error) fail(error);
     },
     async saveHandle(handle) {
       save('handle', handle);
@@ -166,19 +217,91 @@ window.SA = (() => {
       if (error) {
         if (error.code === '23505') throw new Error('That handle is taken.');
         if (error.code === '23514') throw new Error('Use 3 to 24 lowercase letters, numbers or underscores.');
-        throw error;
+        fail(error);
       }
     },
+
+    // ----- contributions -----
+    async submitEntry(e) {
+      const user = await currentUser();
+      if (!user) throw new Error('Sign in to submit entries.');
+      const { error } = await db().from('pack_entries').insert({
+        pack: PACK, title: e.title, cat: e.cat, spoiler: e.spoiler, note: e.note, source: e.source, submitted_by: user.id,
+      });
+      if (error) fail(error);
+    },
+    async mySubmissions() {
+      const user = await currentUser();
+      if (!user) return [];
+      const { data: rows, error } = await db().from('pack_entries')
+        .select('id, title, cat, spoiler, status, review_note, created_at')
+        .eq('submitted_by', user.id).order('created_at', { ascending: false });
+      if (error) fail(error);
+      return rows;
+    },
+    async withdrawEntry(id) {
+      const { error } = await db().from('pack_entries').delete().eq('id', id);
+      if (error) fail(error);
+    },
+    async isAdmin() {
+      const user = await currentUser();
+      if (!user) return false;
+      const { data: yes, error } = await db().rpc('is_admin');
+      return !error && !!yes;
+    },
+    async reviewQueue(status = 'pending') {
+      const { data: rows, error } = await db().from('pack_entries')
+        .select('*').eq('pack', PACK).eq('status', status).order('created_at', { ascending: true });
+      if (error) fail(error);
+      return rows;
+    },
+    async reviewEntry(id, patch) {
+      const { error } = await db().from('pack_entries')
+        .update({ ...patch, reviewed_at: new Date().toISOString() }).eq('id', id);
+      if (error) fail(error);
+    },
+    async deleteEntry(id) {
+      const { error } = await db().from('pack_entries').delete().eq('id', id);
+      if (error) fail(error);
+    },
+
+    // ----- friends -----
+    async myFriends() {
+      const { data: rows, error } = await db().rpc('my_friends');
+      if (error) fail(error);
+      return rows;
+    },
+    async sendFriendRequest(handle) {
+      const { data: result, error } = await db().rpc('send_friend_request', { target_handle: handle });
+      if (error) fail(error);
+      return result;
+    },
+    async respondFriendRequest(id, accept) {
+      const { error } = await db().rpc('respond_friend_request', { request_id: id, accept });
+      if (error) fail(error);
+    },
+    async removeFriend(id) {
+      const { error } = await db().from('friendships').delete().eq('id', id);
+      if (error) fail(error);
+    },
+    async friendProgress() {
+      const { data: rows, error } = await db().rpc('friend_progress', { p_pack: PACK });
+      if (error) fail(error);
+      return rows;
+    },
+
+    // ----- your data -----
     async exportAll() {
       const out = { local: exportLocal() };
       const user = await currentUser();
       if (user) {
         const c = db();
-        const [{ data: profile }, { data: items }] = await Promise.all([
+        const [{ data: profile }, { data: items }, { data: submissions }] = await Promise.all([
           c.from('profiles').select('*').eq('id', user.id).maybeSingle(),
           c.from('checklist_items').select('*').order('created_at', { ascending: true }),
+          c.from('pack_entries').select('*').eq('submitted_by', user.id),
         ]);
-        out.account = { email: user.email, profile, items };
+        out.account = { email: user.email, profile, items, submissions: submissions || [] };
       }
       return out;
     },
@@ -186,7 +309,7 @@ window.SA = (() => {
       const user = await currentUser();
       if (user) {
         const { error } = await db().rpc('delete_my_account');
-        if (error) throw error;
+        if (error) fail(error);
         await signOut();
       }
       clearLocal();
@@ -204,6 +327,6 @@ window.SA = (() => {
 
   return {
     CONFIG, isPlaceholder, load, save, el,
-    accountsEnabled, currentUser, sendMagicLink, signOut, data,
+    accountsEnabled, currentUser, sendMagicLink, signOut, data, CATS,
   };
 })();

@@ -44,6 +44,7 @@
       <a href="checklist.html" aria-current="page">Checklist</a>
       <a href="friends.html">Friends</a>
       <a href="account.html">Account</a>
+      <a href="contribute.html">Contribute</a>
       <a href="checkout.html">Go Pro</a>
       <a href="signin.html" data-auth="signed-out">Sign in</a>
     </nav>
@@ -63,6 +64,10 @@
           <span class="tag warn">Unofficial community pack</span>
           <h1 id="pack-h">Grand Theft Auto VI</h1>
           <div class="label" id="saved" aria-live="polite">Saved on this device</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center">
+            <span class="label" id="coverage">Verified entries: loading…</span>
+            <a class="text-link" href="contribute.html">Suggest an entry</a>
+          </div>
         </div>
         <div class="ring" id="ring" role="img" aria-label="0 percent complete"><span id="pct">0%</span></div>
       </div>
@@ -105,12 +110,12 @@
     <ul class="items" id="items" aria-label="Checklist items"></ul>
     <p class="empty" id="empty" hidden>No items match these filters.</p>
 
-    <p class="muted" style="font-size:14px">The starting items are labelled examples, not game facts. Real entries are written by players and carry a source.</p>
+    <p class="muted" style="font-size:14px">Entries tagged Verified were submitted by players with a source and checked before publishing. Items tagged Example are placeholders, not game facts. <a href="contribute.html">Suggest an entry</a>.</p>
   </div>
 </main>
 
 <footer class="footer">
-  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players.</p></div>
+  <div class="wrap"><p>Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive. Game names are used only to identify which game a checklist is for. Item text is written by players. <a href="privacy.html">Privacy policy</a>.</p></div>
 </footer>
 
 <script src="assets/vendor/supabase.js"></script>
@@ -131,7 +136,7 @@
   const $ = (id) => document.getElementById(id);
   $('new-cat').append(...CATS.map((c) => el('option', { value: c, text: c })));
 
-  const state = { items: [], mode: 'local', filter: 'All', hideDone: false, hideSpoilers: true, revealed: new Set() };
+  const state = { items: [], entries: new Map(), mode: 'local', filter: 'All', hideDone: false, hideSpoilers: true, revealed: new Set() };
 
   function setStatus(text, warn) {
     $('saved').textContent = text;
@@ -180,8 +185,10 @@
       (state.filter === 'All' || i.cat === state.filter) && !(state.hideDone && i.done));
     $('empty').hidden = shown.length > 0;
     $('items').replaceChildren(...shown.map((i) => {
-      const hidden = state.hideSpoilers && i.spoiler > 0 && !state.revealed.has(i.id);
-      const level = i.spoiler === 2 ? 'major spoiler' : 'mild spoiler';
+      const entry = i.entry_id ? state.entries.get(i.entry_id) : null;
+      const view = entry ? { ...i, title: entry.title, cat: entry.cat, spoiler: entry.spoiler, note: entry.note } : i;
+      const hidden = state.hideSpoilers && view.spoiler > 0 && !state.revealed.has(i.id);
+      const level = view.spoiler === 2 ? 'major spoiler' : 'mild spoiler';
       const checkId = 'c' + i.id;
       return el('li', { class: 'item' + (i.done ? ' done' : '') },
         el('input', {
@@ -192,19 +199,23 @@
           },
         }),
         el('div', { class: 'body' },
-          el('label', { class: 'title', for: checkId, text: i.title }),
-          el('div', { class: 'label xs', text: i.cat + (i.spoiler ? ' / ' + level : '') }),
+          el('label', { class: 'title', for: checkId, text: view.title }),
+          el('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' } },
+            entry ? el('span', { class: 'tag ok', text: 'Verified' }) : (i.entry_id ? null : el('span', { class: 'tag', text: i.title.startsWith('Example:') ? 'Example' : 'Your item' })),
+            el('span', { class: 'label xs', text: view.cat + (view.spoiler ? ' / ' + level : '') })),
           hidden
             ? el('div', { class: 'spoiler' },
                 el('span', { class: 'blur', 'aria-hidden': 'true' }),
                 el('button', {
                   class: 'pill', type: 'button', text: 'Reveal ' + level,
-                  'aria-label': `Reveal spoiler note for ${i.title}`,
+                  'aria-label': `Reveal spoiler note for ${view.title}`,
                   onclick: () => { state.revealed.add(i.id); render(); },
                 }))
-            : (i.note ? el('p', { class: 'note', text: i.note }) : null)),
+            : el('div', {},
+                view.note ? el('p', { class: 'note', text: view.note }) : null,
+                entry ? el('p', { class: 'note', style: { fontSize: '13px' }, text: 'Source: ' + entry.source }) : null)),
         el('button', {
-          class: 'del', type: 'button', text: 'Delete', 'aria-label': `Delete ${i.title}`,
+          class: 'del', type: 'button', text: 'Delete', 'aria-label': `Delete ${view.title}`,
           onclick: () => {
             state.items = state.items.filter((x) => x.id !== i.id); render();
             commit(() => data.deleteItem(i.id, state.items));
@@ -237,14 +248,19 @@
   setStatus('Loading…');
   render();
   try {
-    const [{ mode, items }, profile] = await Promise.all([data.loadItems(SEED), data.loadProfile()]);
+    const [{ mode, items, entries }, profile] = await Promise.all([data.loadItems(SEED), data.loadProfile()]);
     state.mode = mode;
     state.items = items;
+    state.entries = new Map(entries.map((e) => [e.id, e]));
+    $('coverage').textContent = entries.length
+      ? `${entries.length} verified ${entries.length === 1 ? 'entry' : 'entries'} in this pack`
+      : 'No verified entries yet. The examples below show how it works.';
     state.hideSpoilers = profile.settings.hideSpoilers !== false; // Account setting, on by default
     setStatus(savedText());
   } catch (err) {
     state.items = SA.load('items', SEED);
     setStatus("Couldn't reach your account, showing this browser's copy. Changes here aren't synced.", true);
+    $('coverage').textContent = '';
   }
   render();
 })();
