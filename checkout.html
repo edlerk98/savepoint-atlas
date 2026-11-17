@@ -90,7 +90,7 @@
         <div class="sum-line"><span>Savepoint Atlas Pro</span><span style="font-weight:600" id="plan-label">Yearly</span></div>
         <ul class="keylist"><li><span class="sym pro" aria-hidden="true"></span>Unlimited friends</li><li><span class="sym pro" aria-hidden="true"></span>Co-op groups with live checklists</li><li><span class="sym pro" aria-hidden="true"></span>Shareable progress links</li><li><span class="sym pro" aria-hidden="true"></span>Backup history</li></ul>
         <div class="due"><span>Due today</span><strong id="due">[YEARLY PRICE]</strong></div>
-        <p class="muted" style="font-size:14px" id="renew">Renews every year on [DATE] until you cancel.</p>
+        <p class="muted" style="font-size:14px" id="renew">Renews every year from the day you subscribe, until you cancel.</p>
         <label class="terms"><input class="check sm" type="checkbox" id="terms" required> <span>I agree to the <a href="[TERMS-URL]">Terms</a> and the <a href="[PRIVACY-URL]">Privacy Policy</a>.</span></label>
         <button class="btn btn-primary" type="submit" id="pay" aria-describedby="pay-status">Continue to secure payment</button>
         <p class="status" id="pay-status" role="status"></p>
@@ -116,9 +116,11 @@
     const yearly = plan() === 'yearly';
     document.getElementById('plan-label').textContent = yearly ? 'Yearly' : 'Monthly';
     document.getElementById('due').textContent = yearly ? '[YEARLY PRICE]' : '[PRICE]';
-    document.getElementById('renew').textContent = yearly
-      ? 'Renews every year on [DATE] until you cancel.'
-      : 'Renews every month on [DATE] until you cancel.';
+    // Stripe renews on the purchase anniversary, so a purchase today renews one period from today.
+    const next = new Date();
+    if (yearly) next.setFullYear(next.getFullYear() + 1); else next.setMonth(next.getMonth() + 1);
+    const when = next.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('renew').textContent = `Renews every ${yearly ? 'year' : 'month'}, next on ${when}, until you cancel.`;
   }
   form.addEventListener('change', sync);
 

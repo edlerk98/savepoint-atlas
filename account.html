@@ -51,7 +51,7 @@
         <div class="plate">Plate 01 · Subscription</div>
         <span class="tag ok">Active (sample)</span>
         <h2 class="card-title" id="sub-h">Savepoint Atlas Pro</h2>
-        <p class="muted" style="font-size:15px">Yearly plan. Renews on [DATE] for [YEARLY PRICE].</p>
+        <p class="muted" style="font-size:15px">Sample yearly plan. Renews on <span id="renew-date">a date one year after purchase</span> for [YEARLY PRICE].</p>
       </div>
       <div class="btns">
         <button class="btn btn-primary" type="button" data-portal>Manage billing</button>
@@ -64,8 +64,8 @@
     <section class="card" aria-labelledby="profile-h">
       <h2 class="plate" id="profile-h">Plate 02 · Profile</h2>
       <div class="row">
-        <div class="field"><label for="handle">Handle</label><input class="input" id="handle" type="text" autocomplete="username" placeholder="[HANDLE]"></div>
-        <div class="field"><label for="mail">Email</label><input class="input" id="mail" type="email" readonly value="[YOU@EXAMPLE.COM]"></div>
+        <div class="field"><label for="handle">Handle</label><input class="input" id="handle" type="text" autocomplete="username" placeholder="sample_player"></div>
+        <div class="field"><label for="mail">Email (sample)</label><input class="input" id="mail" type="email" readonly value="player@example.com"></div>
       </div>
     </section>
 
@@ -102,6 +102,9 @@
 (() => {
   const { CONFIG, isPlaceholder, load, save, exportAll, clearAll, el } = SA;
   const $ = (id) => document.getElementById(id);
+  // Sample subscription: renewal shown as one year from today.
+  const renew = new Date(); renew.setFullYear(renew.getFullYear() + 1);
+  $('renew-date').textContent = renew.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
   const defaults = { publicProfile: false, hideSpoilers: true, emailTips: false };
   const settings = { ...defaults, ...load('settings', {}) };
 
