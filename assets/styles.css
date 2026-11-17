@@ -187,3 +187,52 @@ main { padding: 32px 0 56px; }
   .nav a { padding: 0 10px; }
   .bar-row .name { width: 84px; }
 }
+
+/* ---------- Atlas layer (shared by every page) ---------- */
+.contours { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.contours g { fill: none; stroke: #1a434e; stroke-width: 1.5; }
+.gridrefs { position: relative; display: flex; justify-content: space-between; padding-top: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--ctl); }
+.plate { font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); line-height: 1.4; margin: 0; }
+.stripes { height: 56px; background: linear-gradient(180deg, #ffb35c 0 20%, transparent 20% 30%, #ff8a5c 30% 50%, transparent 50% 62%, var(--hot) 62% 78%, transparent 78% 88%, #c2308f 88% 100%); }
+.has-stripes { position: relative; overflow: hidden; padding-top: 44px; }
+.has-stripes > .stripes { position: absolute; top: 0; left: 0; right: 0; height: 24px; }
+.sym { width: 8px; height: 8px; flex: none; display: block; }
+.sym.free { border-radius: 50%; background: var(--sand); }
+.sym.pro { transform: rotate(45deg); background: var(--hot); }
+.keylist { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+.keylist li { display: flex; gap: 10px; align-items: center; }
+
+/* sheet header used by the app pages */
+.sheet { position: relative; border-bottom: 1px solid var(--line); }
+.sheet-inner { position: relative; display: flex; flex-direction: column; gap: 24px; padding-top: 28px; padding-bottom: 36px; }
+.sheet-row { display: flex; flex-wrap: wrap; gap: 20px 28px; align-items: flex-end; justify-content: space-between; }
+.sheet .lede-sm { color: var(--mute); max-width: 52ch; margin: 0; }
+
+/* checklist: sunset progress strip */
+.sun-strip { position: relative; height: 30px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.sun-strip > i {
+  display: block; height: 100%; width: 0; transition: width .6s ease-out;
+  background:
+    linear-gradient(180deg, transparent 0 22%, var(--panel) 22% 30%, transparent 30% 50%, var(--panel) 50% 60%, transparent 60% 78%, var(--panel) 78% 88%, transparent 88%),
+    linear-gradient(90deg, #ffb35c, var(--hot) 60%, #c2308f);
+}
+.strip-ticks { display: flex; justify-content: space-between; margin-top: 6px; }
+
+/* friends: race lanes */
+.race { display: flex; flex-direction: column; gap: 10px; }
+.lane { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.lane .who { width: 200px; flex: none; display: flex; flex-direction: column; }
+.lane .course { position: relative; flex: 1 1 300px; min-width: 0; height: 48px; margin: 0 22px; }
+.lane .course::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed var(--ctl); }
+.lane .course::after { content: ""; position: absolute; right: -10px; top: 6px; bottom: 6px; width: 8px; border-radius: 2px; background: repeating-linear-gradient(var(--sand) 0 6px, var(--ink) 6px 12px); }
+.lane .run { position: absolute; left: 0; top: calc(50% - 2px); height: 4px; border-radius: 2px; transition: width .8s ease-out; }
+.lane .marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--ink); border: 3px solid var(--ink); z-index: 1; transition: left .8s ease-out; }
+.lane .big-pct { width: 72px; flex: none; text-align: right; font-family: var(--display); font-weight: 900; font-size: 32px; line-height: 1; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 700px) {
+  .lane .who { width: auto; flex: 1 1 auto; }
+  .lane .course { order: 3; flex-basis: calc(100% - 44px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sun-strip > i, .lane .run, .lane .marker { transition: none; }
+}

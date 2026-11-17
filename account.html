@@ -29,14 +29,28 @@
   </div>
 </header>
 
-<main id="main">
-  <div class="wrap narrow stack">
-    <h1>Account</h1>
+<main id="main" style="padding-top:0">
+  <section class="sheet" aria-labelledby="acct-h">
+    <svg class="contours" aria-hidden="true" focusable="false" viewBox="0 0 1360 320" preserveAspectRatio="xMidYMid slice">
+      <g><ellipse cx="1120" cy="250" rx="460" ry="210"/><ellipse cx="1130" cy="258" rx="360" ry="160"/><ellipse cx="1140" cy="266" rx="260" ry="110"/><ellipse cx="1150" cy="274" rx="160" ry="62"/></g>
+    </svg>
+    <div class="wrap narrow gridrefs" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+    <div class="wrap narrow sheet-inner">
+      <div class="stack" style="gap:10px">
+        <div class="plate">Sheet 05 · Account</div>
+        <h1 id="acct-h">Account</h1>
+        <p class="lede-sm">Your plan, your profile, and what other players can see.</p>
+      </div>
+    </div>
+  </section>
+  <div class="wrap narrow stack" style="padding-top:28px">
 
-    <section class="card featured sub" aria-label="Subscription">
+    <section class="card featured sub has-stripes" aria-labelledby="sub-h">
+      <div class="stripes" aria-hidden="true"></div>
       <div class="info">
+        <div class="plate">Plate 01 · Subscription</div>
         <span class="tag ok">Active (sample)</span>
-        <h2 class="card-title">Savepoint Atlas Pro</h2>
+        <h2 class="card-title" id="sub-h">Savepoint Atlas Pro</h2>
         <p class="muted" style="font-size:15px">Yearly plan. Renews on [DATE] for [YEARLY PRICE].</p>
       </div>
       <div class="btns">
@@ -48,7 +62,7 @@
     <p class="status" id="portal-status" role="status"></p>
 
     <section class="card" aria-labelledby="profile-h">
-      <h2 class="label" id="profile-h" style="font-family:var(--mono);font-weight:400">Profile</h2>
+      <h2 class="plate" id="profile-h">Plate 02 · Profile</h2>
       <div class="row">
         <div class="field"><label for="handle">Handle</label><input class="input" id="handle" type="text" autocomplete="username" placeholder="[HANDLE]"></div>
         <div class="field"><label for="mail">Email</label><input class="input" id="mail" type="email" readonly value="[YOU@EXAMPLE.COM]"></div>
@@ -56,12 +70,12 @@
     </section>
 
     <section class="card" style="gap:6px" aria-labelledby="privacy-h">
-      <h2 class="label" id="privacy-h" style="font-family:var(--mono);font-weight:400;margin-bottom:6px">Privacy and spoilers</h2>
+      <h2 class="plate" id="privacy-h" style="margin-bottom:6px">Plate 03 · Privacy and spoilers</h2>
       <div id="switches"></div>
     </section>
 
     <section class="card" aria-labelledby="data-h">
-      <h2 class="label" id="data-h" style="font-family:var(--mono);font-weight:400">Your data</h2>
+      <h2 class="plate" id="data-h">Plate 04 · Your data</h2>
       <div class="btns">
         <button class="btn btn-secondary" type="button" id="export">Export my data</button>
         <button class="btn btn-danger" type="button" id="ask-delete" aria-expanded="false" aria-controls="confirm">Delete account</button>

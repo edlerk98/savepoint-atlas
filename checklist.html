@@ -9,9 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 <style>
-  .pack-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; }
-  .dash { flex-direction: row; flex-wrap: wrap; gap: 28px; align-items: center; }
-  .dash .bars { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
   .add { flex-direction: row; flex-wrap: wrap; align-items: end; padding: 16px; }
   .add .field { flex: 1 1 260px; min-width: 0; }
   .add .field.cat { flex: 0 1 200px; }
@@ -33,7 +30,6 @@
   .del:hover { color: var(--sand); }
   .empty { border: 1px dashed var(--line); border-radius: 12px; padding: 28px; text-align: center; color: var(--mute); }
   @media (max-width: 700px) {
-    .dash { justify-content: center; }
     .add .btn, .add .field.cat { width: 100%; flex-basis: 100%; }
     .filters .spacer { display: none; }
   }
@@ -53,22 +49,36 @@
   </div>
 </header>
 
-<main id="main">
-  <div class="wrap stack">
-    <div class="pack-head">
-      <div class="stack" style="gap:8px">
-        <span class="tag warn">Unofficial community pack</span>
-        <h1>Grand Theft Auto VI</h1>
+<main id="main" style="padding-top:0">
+  <section class="sheet" aria-labelledby="pack-h">
+    <svg class="contours" aria-hidden="true" focusable="false" viewBox="0 0 1360 320" preserveAspectRatio="xMidYMid slice">
+      <g><ellipse cx="1100" cy="250" rx="460" ry="210"/><ellipse cx="1110" cy="258" rx="360" ry="160"/><ellipse cx="1120" cy="266" rx="260" ry="110"/><ellipse cx="1130" cy="274" rx="160" ry="62"/></g>
+    </svg>
+    <div class="wrap gridrefs" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+    <div class="wrap sheet-inner">
+      <div class="sheet-row">
+        <div class="stack" style="gap:10px;min-width:0;flex:1 1 360px">
+          <div class="plate">Sheet 02 · Checklist</div>
+          <span class="tag warn">Unofficial community pack</span>
+          <h1 id="pack-h">Grand Theft Auto VI</h1>
+          <div class="label" id="saved" aria-live="polite">Saved on this device</div>
+        </div>
+        <div class="ring" id="ring" role="img" aria-label="0 percent complete"><span id="pct">0%</span></div>
       </div>
-      <div class="label" id="saved" aria-live="polite">Saved on this device</div>
+      <div>
+        <div class="sun-strip" aria-hidden="true"><i id="strip"></i></div>
+        <div class="strip-ticks label xs" aria-hidden="true"><span>Start</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+      </div>
     </div>
+  </section>
 
-    <section class="card dash" aria-label="Progress">
-      <div class="ring" id="ring" role="img" aria-label="0 percent complete"><span class="num" id="pct">0%</span></div>
-      <div class="bars">
-        <div class="label num" id="count">0 of 0 complete</div>
-        <div id="bars" class="stack" style="gap:10px"></div>
+  <div class="wrap stack" style="padding-top:28px">
+    <section class="card" aria-labelledby="cat-h">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
+        <h2 class="plate" id="cat-h">Plate 01 · By category</h2>
+        <span class="label num" id="count">0 of 0 complete</span>
       </div>
+      <div id="bars" class="stack" style="gap:10px"></div>
     </section>
 
     <form class="card add" id="add-form" autocomplete="off">
@@ -83,6 +93,7 @@
       <button class="btn btn-primary" type="submit">Add item</button>
     </form>
 
+    <h2 class="plate" style="margin-bottom:-8px">Plate 02 · Your list</h2>
     <div class="filters" role="group" aria-label="Filters">
       <div id="chips" style="display:contents"></div>
       <span class="spacer"></span>
@@ -139,6 +150,7 @@
     $('ring').style.background = `conic-gradient(var(--hot) ${pct}%, var(--ink) 0)`;
     $('ring').setAttribute('aria-label', `${pct} percent complete`);
     $('pct').textContent = pct + '%';
+    $('strip').style.width = pct + '%';
     $('count').textContent = `${done} of ${total} complete`;
     $('bars').replaceChildren(...CATS.map((name) => {
       const t = state.items.filter((i) => i.cat === name);

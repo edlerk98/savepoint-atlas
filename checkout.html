@@ -40,17 +40,26 @@
   </div>
 </header>
 
-<main id="main">
-  <form class="wrap narrow stack" style="gap:22px" id="checkout" novalidate>
-    <div class="stack" style="gap:8px">
-      <span class="label accent">Pro</span>
-      <h1>Upgrade to Pro</h1>
+<main id="main" style="padding-top:0">
+  <section class="sheet" aria-labelledby="co-h">
+    <svg class="contours" aria-hidden="true" focusable="false" viewBox="0 0 1360 320" preserveAspectRatio="xMidYMid slice">
+      <g><ellipse cx="1150" cy="250" rx="460" ry="210"/><ellipse cx="1160" cy="258" rx="360" ry="160"/><ellipse cx="1170" cy="266" rx="260" ry="110"/><ellipse cx="1180" cy="274" rx="160" ry="62"/></g>
+    </svg>
+    <div class="wrap narrow gridrefs" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+    <div class="wrap narrow sheet-inner">
+      <div class="stack" style="gap:10px">
+        <div class="plate">Sheet 04 · Pro</div>
+        <h1 id="co-h">Upgrade to Pro</h1>
+        <p class="lede-sm">Unlimited friends, co-op groups with live checklists, and shareable progress links.</p>
+      </div>
     </div>
+  </section>
+  <form class="wrap narrow stack" style="gap:22px;padding-top:28px" id="checkout" novalidate>
 
     <div class="cols">
       <div class="left">
         <div class="card"><fieldset>
-          <legend class="label">1. Choose billing</legend>
+          <legend class="plate">Plate 01 · Billing</legend>
           <label class="plan">
             <input type="radio" name="plan" value="monthly">
             <span style="display:flex;gap:12px;align-items:center"><span class="dot" aria-hidden="true"></span>
@@ -66,7 +75,7 @@
         </fieldset></div>
 
         <div class="card">
-          <div class="label">2. Your details</div>
+          <div class="plate">Plate 02 · Your details</div>
           <div class="field">
             <label for="email">Receipt email</label>
             <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
@@ -75,10 +84,11 @@
         </div>
       </div>
 
-      <aside class="card featured right" aria-labelledby="sum-h">
-        <h2 class="label" id="sum-h" style="font-family:var(--mono);font-weight:400">Order summary</h2>
+      <aside class="card featured right has-stripes" aria-labelledby="sum-h">
+        <div class="stripes" aria-hidden="true"></div>
+        <h2 class="plate" id="sum-h">Plate 03 · Order summary</h2>
         <div class="sum-line"><span>Savepoint Atlas Pro</span><span style="font-weight:600" id="plan-label">Yearly</span></div>
-        <ul class="muted" style="margin:0;padding:0;list-style:none;font-size:15px;line-height:1.8"><li>Unlimited friends</li><li>Co-op groups with live checklists</li><li>Shareable progress links</li><li>Backup history</li></ul>
+        <ul class="keylist"><li><span class="sym pro" aria-hidden="true"></span>Unlimited friends</li><li><span class="sym pro" aria-hidden="true"></span>Co-op groups with live checklists</li><li><span class="sym pro" aria-hidden="true"></span>Shareable progress links</li><li><span class="sym pro" aria-hidden="true"></span>Backup history</li></ul>
         <div class="due"><span>Due today</span><strong id="due">[YEARLY PRICE]</strong></div>
         <p class="muted" style="font-size:14px" id="renew">Renews every year on [DATE] until you cancel.</p>
         <label class="terms"><input class="check sm" type="checkbox" id="terms" required> <span>I agree to the <a href="[TERMS-URL]">Terms</a> and the <a href="[PRIVACY-URL]">Privacy Policy</a>.</span></label>

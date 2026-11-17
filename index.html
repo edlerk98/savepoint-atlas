@@ -12,12 +12,9 @@
 <script>document.documentElement.classList.add('js');</script>
 <style>
   body { overflow-x: hidden; }
-  .contours { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
-  .contours g { fill: none; stroke: #1a434e; stroke-width: 1.5; }
 
   /* hero */
   .hero { position: relative; border-bottom: 1px solid var(--line); }
-  .gridrefs { position: relative; display: flex; justify-content: space-between; padding-top: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--ctl); }
   .hero-inner { position: relative; display: flex; flex-wrap: wrap; gap: 40px; align-items: center; padding-top: 40px; padding-bottom: 72px; }
   .hero-copy { flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
   .hero-art { flex: 1 1 380px; min-width: 0; position: relative; display: flex; justify-content: flex-end; min-height: 540px; }
@@ -56,7 +53,6 @@
   .js .rail .seg { transform: scaleY(0); transition: transform 1.2s ease-out; }
   .js .stop.drawn .rail .seg { transform: scaleY(1); }
   .stop-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
-  .plate { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
 
   .steps { display: flex; flex-wrap: wrap; gap: 14px; }
   .step { flex: 1 1 240px; min-width: 0; border-top: 2px dashed var(--ctl); padding-top: 16px; display: flex; flex-direction: column; gap: 6px; }
@@ -65,7 +61,6 @@
 
   .packs { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; }
   .pack-main { flex: 2 1 460px; min-width: 0; padding: 0; overflow: hidden; gap: 0; }
-  .stripes { height: 56px; background: linear-gradient(180deg, #ffb35c 0 20%, transparent 20% 30%, #ff8a5c 30% 50%, transparent 50% 62%, var(--hot) 62% 78%, transparent 78% 88%, #c2308f 88% 100%); }
   .pack-main .inner { padding: 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
   .pack-main .card-title { font-size: clamp(40px, 5vw, 60px); line-height: .9; }
   .pack-side { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
@@ -87,9 +82,6 @@
   /* pricing key */
   .key-legend { display: flex; flex-wrap: wrap; gap: 16px; }
   .key-legend span { display: inline-flex; gap: 8px; align-items: center; }
-  .sym { width: 8px; height: 8px; flex: none; display: block; }
-  .sym.free { border-radius: 50%; background: var(--sand); }
-  .sym.pro { transform: rotate(45deg); background: var(--hot); }
   .key-legend .sym { width: 10px; height: 10px; }
   .keyframe { border: 1px solid var(--line); border-radius: 12px; padding: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
   .tier { flex: 1 1 320px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }

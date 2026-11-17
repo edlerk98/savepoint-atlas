@@ -9,16 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 <style>
-  .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; }
-  .board { gap: 16px; }
-  .person { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
-  .who { width: 220px; flex: none; display: flex; gap: 12px; align-items: center; }
-  .avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--ink); flex: none; }
-  .person .bar { flex: 1 1 300px; min-width: 0; }
-  .big-pct { width: 72px; flex: none; text-align: right; font-family: var(--display); font-weight: 900; font-size: 32px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .race-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px 12px; }
+  .race-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
   .share-url { font-family: var(--mono); font-size: 13px; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 12px; color: var(--mute); overflow-wrap: anywhere; }
   .bar-row .name { width: 72px; }
-  @media (max-width: 700px) { .who { width: auto; flex: 1 1 auto; } .person .bar { order: 3; flex-basis: 100%; } }
 </style>
 </head>
 <body>
@@ -35,29 +29,47 @@
   </div>
 </header>
 
-<main id="main">
-  <div class="wrap stack" style="gap:22px">
-    <div class="head">
-      <div class="stack" style="gap:8px">
-        <span class="label">Sample data · Grand Theft Auto VI pack</span>
-        <h1>Who is ahead?</h1>
+<main id="main" style="padding-top:0">
+  <section class="sheet" aria-labelledby="race-h">
+    <svg class="contours" aria-hidden="true" focusable="false" viewBox="0 0 1360 320" preserveAspectRatio="xMidYMid slice">
+      <g><ellipse cx="1080" cy="250" rx="460" ry="210"/><ellipse cx="1090" cy="258" rx="360" ry="160"/><ellipse cx="1100" cy="266" rx="260" ry="110"/><ellipse cx="1110" cy="274" rx="160" ry="62"/></g>
+    </svg>
+    <div class="wrap gridrefs" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+    <div class="wrap sheet-inner">
+      <div class="sheet-row">
+        <div class="stack" style="gap:10px">
+          <div class="plate">Sheet 03 · Friends · sample data</div>
+          <h1 id="race-h">Who is ahead?</h1>
+          <span class="label">Grand Theft Auto VI pack</span>
+        </div>
+        <div class="stack" style="gap:4px;align-items:flex-end">
+          <button class="btn btn-secondary" type="button" disabled aria-describedby="add-note">Add friend by handle</button>
+          <span class="label xs" id="add-note">Needs accounts: not in this prototype</span>
+        </div>
       </div>
-      <div class="stack" style="gap:4px;align-items:flex-end"><button class="btn btn-secondary" type="button" disabled aria-describedby="add-note">Add friend by handle</button><span class="label xs" id="add-note">Needs accounts: not in this prototype</span></div>
+      <div class="race-card">
+        <div class="race-head"><h2 class="plate">Plate 01 · The race to 100%</h2><span class="label xs">Finish line at 100%</span></div>
+        <div class="race" id="race" role="list" aria-label="Overall completion, sample data"></div>
+      </div>
     </div>
+  </section>
 
-    <section class="card board" aria-label="Overall completion" id="board"></section>
-    <div class="row" id="cats"></div>
+  <div class="wrap stack" style="gap:22px;padding-top:32px">
+    <h2 class="plate">Plate 02 · By category</h2>
+    <div class="row" id="cats" style="margin-top:-8px"></div>
 
-    <div class="row">
-      <article class="card featured">
+    <h2 class="plate" style="margin-top:12px">Plate 03 · Play together</h2>
+    <div class="row" style="margin-top:-8px">
+      <article class="card featured has-stripes">
+        <div class="stripes" aria-hidden="true"></div>
         <span class="label xs accent-text">Pro</span>
-        <h2 class="card-title">Co-op run</h2>
+        <h3 class="card-title">Co-op run</h3>
         <p class="muted" style="font-size:15px">One checklist for the whole group. When anyone ticks an item, everyone sees it live.</p>
         <a class="btn btn-primary" style="width:fit-content;margin-top:6px" href="checkout.html">Start a group</a>
       </article>
       <article class="card">
         <span class="label xs">Pro · private by default</span>
-        <h2 class="card-title">Share your progress</h2>
+        <h3 class="card-title">Share your progress</h3>
         <p class="muted" style="font-size:15px">Create a read-only link that shows percentages only. No item names, so nothing gets spoiled.</p>
         <div class="share-url" style="margin-top:6px">[YOUR-DOMAIN]/p/[HANDLE]</div>
       </article>
@@ -73,7 +85,7 @@
 <script>
 (() => {
   const { el } = SA;
-  // Sample numbers for layout only. Colours step in lightness (coral < green < sand) and every bar is labelled.
+  // Sample numbers for layout only. Colours step in lightness (coral < green < sand) and every lane is labelled.
   const PEOPLE = [
     { name: 'You', initial: 'Y', sub: '[HANDLE]', color: 'var(--hot)', pct: 62 },
     { name: 'Friend A', initial: 'A', sub: 'Sample friend', color: 'var(--ok)', pct: 48 },
@@ -83,16 +95,28 @@
     ['Main Story', 80, 60, 40], ['Side Quests', 55, 45, 30], ['Collectibles', 40, 35, 20],
     ['Exploration', 70, 50, 38], ['Challenges', 65, 52, 28],
   ];
-  document.getElementById('board').replaceChildren(...PEOPLE.map((p) =>
-    el('div', { class: 'person' },
-      el('div', { class: 'who' },
-        el('div', { class: 'avatar', style: { background: p.color }, 'aria-hidden': 'true', text: p.initial }),
-        el('div', {}, el('div', { style: { fontWeight: 600 }, text: p.name }), el('div', { class: 'label xs', text: p.sub }))),
-      el('span', { class: 'bar lg', role: 'img', 'aria-label': `${p.name}: ${p.pct} percent` }, el('i', { style: { width: p.pct + '%', background: p.color } })),
-      el('div', { class: 'big-pct', 'aria-hidden': 'true', text: p.pct + '%' }))));
+
+  const race = document.getElementById('race');
+  const lanes = PEOPLE.map((p) => {
+    const run = el('span', { class: 'run', style: { width: '0%', background: p.color } });
+    const marker = el('span', { class: 'marker', style: { left: '0%', background: p.color }, text: p.initial });
+    const lane = el('div', { class: 'lane', role: 'listitem', 'aria-label': `${p.name}: ${p.pct} percent` },
+      el('div', { class: 'who', 'aria-hidden': 'true' },
+        el('span', { style: { fontWeight: 600 }, text: p.name }), el('span', { class: 'label xs', text: p.sub })),
+      el('div', { class: 'course', 'aria-hidden': 'true' }, run, marker),
+      el('div', { class: 'big-pct', 'aria-hidden': 'true', text: p.pct + '%' }));
+    return { lane, run, marker, pct: p.pct };
+  });
+  race.replaceChildren(...lanes.map((l) => l.lane));
+  // Markers travel to their spot once; with reduced motion the CSS transition is off, so they just appear.
+  requestAnimationFrame(() => requestAnimationFrame(() => lanes.forEach((l) => {
+    l.run.style.width = l.pct + '%';
+    l.marker.style.left = l.pct + '%';
+  })));
+
   document.getElementById('cats').replaceChildren(...CATS.map(([name, ...vals]) =>
     el('article', { class: 'card', style: { padding: '16px', gap: '10px', flexBasis: '300px' } },
-      el('h2', { class: 'card-title sm', text: name }),
+      el('h3', { class: 'card-title sm', text: name }),
       ...PEOPLE.map((p, i) => el('div', { class: 'bar-row' },
         el('span', { class: 'name', text: p.name }),
         el('span', { class: 'bar', role: 'img', 'aria-label': `${p.name}: ${vals[i]} percent` }, el('i', { style: { width: vals[i] + '%', background: p.color } })),
