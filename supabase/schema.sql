@@ -1,6 +1,8 @@
 -- Savepoint Atlas: database setup for accounts (step 1: sign-in, synced checklist, synced settings).
 -- Run this once in your Supabase project: Dashboard > SQL Editor > New query > paste > Run.
 -- Safe to re-run: every statement checks whether its object already exists.
+-- Written for a project created with "Automatically expose new tables" switched OFF:
+-- the grants below open only these two tables, and only to signed-in users.
 
 -- ---------- Profiles: one row per account ----------
 create table if not exists public.profiles (
@@ -96,3 +98,10 @@ $$;
 
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- ---------- Access: signed-in users only, and only through the row-level security policies above ----------
+grant usage on schema public to authenticated;
+grant select, update on public.profiles to authenticated;
+grant select, insert, update, delete on public.checklist_items to authenticated;
+revoke all on public.profiles from anon;
+revoke all on public.checklist_items from anon;
