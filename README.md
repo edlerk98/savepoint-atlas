@@ -14,7 +14,7 @@ Savepoint Atlas is an independent tool. It is not affiliated with, endorsed by, 
 
 1. Create a project at supabase.com.
 2. SQL Editor: paste and run `supabase/schema.sql`. It creates `profiles` and `checklist_items` with row-level security (each user can only touch their own rows) and a `delete_my_account()` function.
-3. Authentication > URL Configuration: set Site URL to `https://edlerk98.github.io/savepoint-atlas/` and add `https://edlerk98.github.io/savepoint-atlas/**` to Redirect URLs.
+3. Authentication > URL Configuration: set Site URL to `https://atlas.sogilex.com/` and add `https://atlas.sogilex.com/**` to Redirect URLs.
 4. Copy the Project URL and the anon public key into `assets/common.js`. Never use the `service_role` key in this site.
 5. Before real users: set up custom SMTP under Authentication > Emails. Supabase's built-in sender is rate-limited and meant for testing.
 
