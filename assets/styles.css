@@ -246,3 +246,8 @@ main { padding: 32px 0 56px; }
 @media (prefers-reduced-motion: reduce) {
   .sun-strip > i, .lane .run, .lane .marker { transition: none; }
 }
+
+/* status messages (sign-in, password) */
+.status { font-size: 15px; margin: 0; min-height: 1.5em; }
+.status.ok { color: var(--ok); }
+.status.err { color: var(--warn); }

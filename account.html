@@ -52,6 +52,8 @@
       <div id="auth-in" hidden>
         <p style="margin-bottom:12px">Signed in as <strong id="auth-email"></strong>. Your checklist and settings sync to this account.</p>
         <button class="btn btn-secondary" type="button" id="signout">Sign out</button>
+        <h3 class="plate" style="margin-top:22px">Password</h3>
+        <div id="pw-mount"></div>
       </div>
       <p class="muted" id="auth-off" hidden>Accounts aren't switched on yet. Everything is saved in this browser.</p>
     </section>
@@ -107,6 +109,7 @@
 </footer>
 
 <script src="assets/vendor/supabase.js"></script>
+<script src="assets/sogilex-auth.js"></script>
 <script src="assets/common.js"></script>
 <script>
 (async () => {
@@ -119,6 +122,7 @@
   else if (user) {
     $('auth-in').hidden = false;
     $('auth-email').textContent = user.email;
+    if (window.SogilexAuth) SogilexAuth.mountPasswordForm($('pw-mount'), { client: SA.client(), buttonClass: 'btn btn-secondary' });
     $('mail').value = user.email;
     $('delete-text').textContent = 'This permanently deletes your account, your checklist and your settings. It cannot be undone. Export your data before you continue.';
   } else $('auth-out').hidden = false;

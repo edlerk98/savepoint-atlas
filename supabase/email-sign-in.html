@@ -1,37 +1,44 @@
-<!-- Savepoint Atlas sign-in email.
+<!-- Sogilex sign-in email: shows the code (typed into Atlas or Build) and keeps the link as a backup.
      Paste into Supabase: Authentication > Emails > Templates, into BOTH "Magic link" and "Confirm signup"
-     (a first-time sign-in uses "Confirm signup"). Suggested subject: Your Savepoint Atlas sign-in link
+     (a first-time sign-in uses "Confirm signup"). Subject for both: Your Sogilex sign-in code
      Email clients ignore web fonts and external CSS, so everything is inline with safe fallbacks. -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b252c;padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#120A18;padding:32px 16px;">
   <tr>
     <td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#12353e;border:1px solid #24505c;border-radius:12px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#1A0F22;border:1px solid #4A3357;border-radius:14px;">
         <tr>
-          <td style="height:14px;line-height:14px;font-size:0;border-radius:12px 12px 0 0;background:linear-gradient(180deg,#ffb35c 0 20%,#12353e 20% 30%,#ff8a5c 30% 50%,#12353e 50% 62%,#ff5d73 62% 78%,#12353e 78% 88%,#c2308f 88% 100%);background-color:#ff5d73;">&nbsp;</td>
+          <td style="height:6px;line-height:6px;font-size:0;border-radius:14px 14px 0 0;background:linear-gradient(90deg,#D91E8C,#F2496B,#FF9A4D);background-color:#F2496B;">&nbsp;</td>
         </tr>
         <tr>
-          <td style="padding:28px 28px 8px;font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:26px;line-height:1;letter-spacing:.02em;text-transform:uppercase;color:#f1e6d2;">
-            Savepoint Atlas
+          <td style="padding:28px 28px 4px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;letter-spacing:.18em;color:#F7EFF3;">
+            SOGILEX
           </td>
         </tr>
         <tr>
-          <td style="padding:8px 28px 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#f1e6d2;">
-            Here's your link to sign in. It works once and expires soon.
+          <td style="padding:16px 28px 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#F7EFF3;">
+            Your sign-in code:
           </td>
         </tr>
         <tr>
-          <td style="padding:24px 28px;">
-            <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#ff5d73;color:#2a0a10;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 24px;border-radius:10px;">Sign in to Savepoint Atlas</a>
+          <td style="padding:12px 28px 8px;font-family:'Courier New',Courier,monospace;font-size:34px;font-weight:bold;letter-spacing:.3em;color:#FF9A4D;">
+            {{ .Token }}
           </td>
         </tr>
         <tr>
-          <td style="padding:0 28px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#9bb3b6;">
-            Didn't ask for this? Ignore this email. Nobody can sign in without the link.
+          <td style="padding:0 28px 8px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#BBA9C2;">
+            Type it into the page you're signing in on. It works once and expires soon.
           </td>
         </tr>
         <tr>
-          <td style="padding:16px 28px 24px;border-top:1px solid #24505c;font-family:'Courier New',monospace;font-size:11px;line-height:1.5;letter-spacing:.06em;text-transform:uppercase;color:#9bb3b6;">
-            Savepoint Atlas is made by Sogilex. Independent tool, not affiliated with Rockstar Games or Take-Two Interactive.
+          <td style="padding:16px 28px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#BBA9C2;">
+            Or sign in with this link on this device:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#F0458F;">Sign in to Sogilex</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 28px 24px;border-top:1px solid #33223F;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.55;color:#BBA9C2;">
+            Didn't ask for this? Ignore this email. Nobody can sign in without the code or the link.<br>
+            One Sogilex account works for Savepoint Atlas and Sogilex Build.
           </td>
         </tr>
       </table>

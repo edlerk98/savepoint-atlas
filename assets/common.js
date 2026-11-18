@@ -65,14 +65,17 @@ window.SA = (() => {
     return n;
   }
 
-  // ---------- Accounts (Supabase magic link) ----------
+  // ---------- Accounts (Supabase: password, emailed code or link; see sogilex-auth.js) ----------
   const accountsEnabled = !isPlaceholder(CONFIG.supabaseUrl) && !isPlaceholder(CONFIG.supabaseAnonKey) && !!window.supabase;
   let client = null;
   function db() {
     if (!accountsEnabled) return null;
     if (!client) {
+      // One session across all of sogilex.com (see sogilex-auth.js).
       client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
+        auth: window.SogilexAuth
+          ? window.SogilexAuth.clientOptions()
+          : { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
       });
     }
     return client;
@@ -346,6 +349,6 @@ window.SA = (() => {
 
   return {
     CONFIG, isPlaceholder, load, save, el,
-    accountsEnabled, currentUser, sendMagicLink, signOut, data, CATS,
+    accountsEnabled, currentUser, sendMagicLink, signOut, data, CATS, client: db,
   };
 })();
